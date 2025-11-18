@@ -2,6 +2,7 @@ package com.example.smartair;
 
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,6 +10,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -27,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        TextView tvOutput = findViewById(R.id.textView);
         Button btn1 = findViewById(R.id.btnTest1);
         Button btn2 = findViewById(R.id.btnTest2);
 
@@ -48,6 +51,31 @@ public class MainActivity extends AppCompatActivity {
             db.collection("testLogs").add(data);
         });
 
+        db.collection("testLogs")
+                .addSnapshotListener((value,error) ->{
+                    if (error != null){
+                        String errText = getString(R.string.error_prefix, error.getMessage());
+                        tvOutput.setText(errText);
+                        return;
+                    }
+
+                    if (value == null || value.isEmpty()) {
+                        tvOutput.setText(getString(R.string.waiting_for_logs));
+                        return;
+                    }
+
+                    StringBuilder sb = new StringBuilder();
+
+                    for (DocumentSnapshot doc: value.getDocuments()) {
+                        Map<String, Object> data = doc.getData();
+                        if (data != null) {
+                            sb.append(data.toString()).append("\n");
+
+                        }
+                    }
+
+                    tvOutput.setText(sb.toString());
+                });
 
     }
 }

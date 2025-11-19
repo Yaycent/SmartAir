@@ -2,6 +2,16 @@
     <string name="app_name">SmartAir</string>
     <string name="btn_test2">Test R4 PEF logs</string>
     <string name="btn_test1">Test R3 Substance logs</string>
-    <string name="waiting_for_logs">Waiting for Logs</string>
-    <string name="error_prefix">Error: %1$s</string>
+    <string name="register">Register</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="registerbutton">Register</string>
+    <string name="parent_login">Parent Login</string>
+    <string name="log_in">Log in</string>
+    <string name="parentdashborad">ParentDashborad</string>
+    <string name="manage_children">Manage Children</string>
+    <string name="childname">ChildName</string>
+    <string name="dateofbirth_e_g_2020_01_01">DateOfBirth (e.g., 2020-01-01)</string>
+    <string name="save">Save</string>
+    <string name="childdashboard">Child</string>
 </resources>

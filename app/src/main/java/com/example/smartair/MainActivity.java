@@ -1,16 +1,25 @@
 package com.example.smartair;
 
+import android.content.Intent;
+import android.view.View;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.EditText;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -18,9 +27,18 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
+    private FirebaseAuth mAuth;
+
+    private EditText editTextEmail;
+    private EditText editTextPassword;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mAuth = FirebaseAuth.getInstance();
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -29,53 +47,79 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        TextView tvOutput = findViewById(R.id.textView);
-        Button btn1 = findViewById(R.id.btnTest1);
-        Button btn2 = findViewById(R.id.btnTest2);
+        /*
+        Check whether the user is logged, as we don't have to logout botton yet, it will not be active:)
+        FirebaseUser currentUser = mAuth.getCurrentUser();
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance().collection("testLogs").getFirestore();
+        if (currentUser != null) {
+            // Already logged in: Jump to the homepage
+            navigateToDashboard(currentUser);
+            return;
+        }
+        */
 
-        btn1.setOnClickListener(v -> {
+        // Not logged in: Display login screen
+        setContentView(R.layout.activity_main);
 
-            Map<String, Object> data = new HashMap<>();
-            data.put("type", "Rescue");
-            data.put("time", "now");
-            db.collection("testLogs").add(data);
+        // UI elements
+        editTextEmail = findViewById(R.id.editTextEmail);
+        editTextPassword = findViewById(R.id.editTextPassword);
+        Button buttonLogin = findViewById(R.id.buttonLogin);
+        Button btnGoToRegister = findViewById(R.id.btnGoToRegister);
 
+        //login button
+        buttonLogin.setOnClickListener(v -> {
+            signInUser();
         });
 
-        btn2.setOnClickListener(v -> {
-            Map<String, Object> data = new HashMap<>();
-            data.put("type", "PEF");
-            data.put("value", 300);
-            db.collection("testLogs").add(data);
+        // RegisterPage
+        btnGoToRegister.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
+            startActivity(intent);
         });
+    }
 
-        db.collection("testLogs")
-                .addSnapshotListener((value,error) ->{
-                    if (error != null){
-                        String errText = getString(R.string.error_prefix, error.getMessage());
-                        tvOutput.setText(errText);
-                        return;
-                    }
+    private void signInUser() {
+        String email = editTextEmail.getText().toString().trim();
+        String password = editTextPassword.getText().toString().trim();
 
-                    if (value == null || value.isEmpty()) {
-                        tvOutput.setText(getString(R.string.waiting_for_logs));
-                        return;
-                    }
+        if (email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Please enter your email address and password.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-                    StringBuilder sb = new StringBuilder();
+        // Call the Firebase Sign-in API
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Login successful
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            Toast.makeText(MainActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
 
-                    for (DocumentSnapshot doc: value.getDocuments()) {
-                        Map<String, Object> data = doc.getData();
-                        if (data != null) {
-                            sb.append(data.toString()).append("\n");
+                            // jump to the dashboard.
+                            assert user != null;
+                            navigateToDashboard(user);
 
+                        } else {
+                            // login fail
+                            Log.w(TAG, "signInWithEmail:failure", task.getException());
+                            Toast.makeText(MainActivity.this, "Login failed: Check your email and password.",
+                                    Toast.LENGTH_LONG).show();
                         }
                     }
-
-                    tvOutput.setText(sb.toString());
                 });
+    }
 
+    private void navigateToDashboard(FirebaseUser user) {
+        // jump to the dashboard
+        Intent intent = new Intent(MainActivity.this, ParentDashboardActivity.class);
+
+        // pass parent id
+        intent.putExtra("PARENT_UID", user.getUid());
+
+        startActivity(intent);
+        finish(); // close MainActivity
     }
 }

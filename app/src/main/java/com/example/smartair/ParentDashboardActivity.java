@@ -48,5 +48,17 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
             startActivity(addChildIntent);
         });
+
+        // child dashboard button
+        Button buttonGoToChildDashboard = findViewById(R.id.buttonGoToChildDashboard);
+        buttonGoToChildDashboard.setOnClickListener(v -> {
+            Intent childDashIntent = new Intent(ParentDashboardActivity.this, ChildDashboardActivity.class);
+
+            // pass parent id, i am not sure if we need it or not
+            // childDashIntent.putExtra("PARENT_UID", parentUid);
+
+            startActivity(childDashIntent);
+        });
+
     }
 }

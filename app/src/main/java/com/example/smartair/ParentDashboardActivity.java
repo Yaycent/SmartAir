@@ -22,18 +22,21 @@ import java.util.ArrayList;
 
 public class ParentDashboardActivity extends AppCompatActivity {
 
-    // UI component: dropdown menu for selecting a child
+    // UI components
     private Spinner spinnerchild;
-    // Firebase instances
+    private Button buttonAddChild;
+    private Button buttonGoToChildDashboard;
+
+    // Firebase
     private FirebaseFirestore db;
     private FirebaseAuth auth;
 
-    //save childid and childname
+    // Child info lists
     private ArrayList<String> childnames = new ArrayList<>();
-    private ArrayList<String> childids= new ArrayList<>();
+    private ArrayList<String> childids = new ArrayList<>();
 
     private static final String TAG = "ParentDashboardActivity";
-    private String parentUid; //to store the parent UID received from login page
+    private String parentUid;  // UID from login
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,76 +50,101 @@ public class ParentDashboardActivity extends AppCompatActivity {
             return insets;
         });
 
-        Intent intent = getIntent();
-        parentUid = intent.getStringExtra("PARENT_UID");
-
+        // -----------------------------
+        // Retrieve parent UID
+        // -----------------------------
+        parentUid = getIntent().getStringExtra("PARENT_UID");
         if (parentUid != null) {
             Log.d(TAG, "Logged in Parent UID: " + parentUid);
         } else {
-            Log.e(TAG, "Error: PARENT_UID not received!");
+            Log.e(TAG, "Error: parent UID missing");
         }
 
-        // add child button
-        Button buttonAddChild = findViewById(R.id.buttonAddChild);
-        buttonAddChild.setOnClickListener(v -> {
-            // jump to AddChildActivity
-            Intent addChildIntent = new Intent(ParentDashboardActivity.this, AddChildActivity.class);
-
-            // pass parent id
-            addChildIntent.putExtra("PARENT_UID", parentUid);
-
-            startActivity(addChildIntent);
-
-        });
+        // -----------------------------
+        // UI Binding
+        // -----------------------------
+        buttonAddChild = findViewById(R.id.buttonAddChild);
+        buttonGoToChildDashboard = findViewById(R.id.buttonGoToChildDashboard);
         spinnerchild = findViewById(R.id.spinnerChildren);
 
+        // -----------------------------
+        // Firebase Init
+        // -----------------------------
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
-        parentUid= getIntent().getStringExtra("PARENT_UID");;
-        loadChildrenFromFirestore();
+        // -----------------------------
+        // Add child button → go to AddChildActivity
+        // -----------------------------
+        buttonAddChild.setOnClickListener(v -> {
+            Intent addChildIntent = new Intent(ParentDashboardActivity.this, AddChildActivity.class);
+            addChildIntent.putExtra("PARENT_UID", parentUid);
+            startActivity(addChildIntent);
+        });
 
+        // -----------------------------
+        // Child Dashboard button
+        // -----------------------------
+        buttonGoToChildDashboard.setOnClickListener(v -> {
+            Intent childDashIntent = new Intent(ParentDashboardActivity.this, ChildDashboardActivity.class);
+            startActivity(childDashIntent);
+        });
+
+        // -----------------------------
+        // Load children into Spinner
+        // -----------------------------
+        loadChildrenFromFirestore();
     }
+
     /**
      * loadChildrenFromFirestore()
-     * ---------------------------
-     * This method queries Firestore:
-     * It finds all documents in the "children" collection where
-     * the "parentId" field matches the current logged-in parent's UID.
+     * <p>
+     * Loads all children whose "parentId" == current parent's UID,
+     * and displays them into the dropdown spinner.
      */
+    private void loadChildrenFromFirestore() {
 
-    private void loadChildrenFromFirestore(){
-        // Get the UID of the currently logged-in parent
+        db.collection("children")
+                .whereEqualTo("parentId", parentUid)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
 
-        db.collection("children").whereEqualTo("parentId", parentUid)
-                .get().addOnSuccessListener(queryDocumentSnapshots -> {
                     childnames.clear();
                     childids.clear();
 
-                    for(QueryDocumentSnapshot doc: queryDocumentSnapshots){
-
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         String name = doc.getString("childName");
                         String id = doc.getId();
-                        childids.add(id);
+
                         childnames.add(name);
+                        childids.add(id);
                     }
 
-                    if(childnames.isEmpty()){
-                        Toast.makeText(ParentDashboardActivity.this,
-                                "Please add a child first.", Toast.LENGTH_SHORT).show();
-
+                    if (childnames.isEmpty()) {
+                        Toast.makeText(
+                                ParentDashboardActivity.this,
+                                "Please add a child first.",
+                                Toast.LENGTH_SHORT
+                        ).show();
                     }
 
-                    ArrayAdapter<String> adapter= new ArrayAdapter<>(this,
-                            android.R.layout.simple_spinner_item, childnames);
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                            this,
+                            android.R.layout.simple_spinner_item,
+                            childnames
+                    );
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     spinnerchild.setAdapter(adapter);
 
                 })
-                .addOnFailureListener(e ->{
-                    Toast.makeText(ParentDashboardActivity.this,
-                            "loading fail:"+e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e -> {
+                    Toast.makeText(
+                            ParentDashboardActivity.this,
+                            "Failed to load children: " + e.getMessage(),
+                            Toast.LENGTH_SHORT
+                    ).show();
 
+                });
     }
 }
+

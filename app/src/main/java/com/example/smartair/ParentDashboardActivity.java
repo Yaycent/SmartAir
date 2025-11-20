@@ -6,6 +6,7 @@ import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -49,6 +50,18 @@ public class ParentDashboardActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        TextView tvLogout = findViewById(R.id.tvLogout);
+
+        tvLogout.setOnClickListener(v -> {
+            // optional: sign out from Firebase
+            // FirebaseAuth.getInstance().signOut();
+
+            Intent intent = new Intent(ParentDashboardActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish(); // prevent returning with back button
+        });
+
 
         // -----------------------------
         // Retrieve parent UID

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -8,67 +9,84 @@
     android:padding="32dp"
     tools:context=".ParentDashboardActivity">
 
+    <!-- Hi, Parent title -->
     <TextView
-        android:id="@+id/textViewDashboardTitle"
+        android:id="@+id/tvHiParent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/parentdashborad"
-        android:textSize="24sp"
-
-        app:layout_constraintBottom_toTopOf="@+id/buttonAddChild"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
-
-        app:layout_constraintStart_toStartOf="parent"
+        android:text="Hi, Parent"
+        android:textSize="28sp"
+        android:style="@style/SmartAir.H1"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.05"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- Logout  button  -->
+    <TextView
+        android:id="@+id/tvLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Logout"
+        android:textColor="#757575"
+        android:textSize="16sp"
+        android:padding="4dp"
+        android:background="@android:color/transparent"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Add Child -->
     <Button
         android:id="@+id/buttonAddChild"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
         android:text="@string/manage_children"
-
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#F5A849"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginTop="32dp"
+        app:layout_constraintTop_toBottomOf="@id/tvHiParent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewDashboardTitle" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
-<<<<<<< HEAD
+    <!-- Select Child Label -->
     <TextView
         android:id="@+id/tvSelectChild"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Please choose one kid："
-        android:textSize="20sp"
+        android:text="Please choose one kid:"
+        android:textSize="16sp"
+        android:textColor="#212121"
+        android:fontFamily="sans-serif"
         android:paddingBottom="10dp"
-
+        android:layout_marginTop="24dp"
         app:layout_constraintTop_toBottomOf="@id/buttonAddChild"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
+
+    <!-- Spinner -->
     <Spinner
         android:id="@+id/spinnerChildren"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-
         app:layout_constraintTop_toBottomOf="@id/tvSelectChild"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-=======
+    <!-- Go to Child Dashboard -->
     <Button
         android:id="@+id/buttonGoToChildDashboard"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/childdashboard"
-        android:layout_marginTop="16dp"
-
-        app:layout_constraintTop_toBottomOf="@+id/buttonAddChild"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:backgroundTint="#F5A849"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toBottomOf="@id/spinnerChildren"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
->>>>>>> main
+
 </androidx.constraintlayout.widget.ConstraintLayout>

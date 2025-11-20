@@ -77,6 +77,27 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
             startActivity(intent);
         });
+
+        Button btnForgotPassword = findViewById(R.id.btnForgotPassword);
+
+        btnForgotPassword.setOnClickListener(v -> {
+            String email = editTextEmail.getText().toString().trim();
+
+            if (email.isEmpty()) {
+                Toast.makeText(MainActivity.this, "Please enter your email to reset password.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            mAuth.sendPasswordResetEmail(email)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(MainActivity.this, "Password reset email sent.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+        });
+
     }
 
     private void signInUser() {

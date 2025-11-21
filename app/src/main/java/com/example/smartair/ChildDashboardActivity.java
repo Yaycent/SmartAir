@@ -47,5 +47,11 @@ public class ChildDashboardActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+
+        String childName = getIntent().getStringExtra("CHILD_NAME");
+
+        TextView hiText = findViewById(R.id.tvHiChild);
+        hiText.setText("Hi, " + childName);
+
     }
 }

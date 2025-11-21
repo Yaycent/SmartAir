@@ -3,6 +3,8 @@ package com.example.smartair;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
@@ -38,7 +40,11 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private ArrayList<String> childIds = new ArrayList<>();
 
     private static final String TAG = "ParentDashboardActivity";
-    private String parentUid; // UID passed from Login
+    // UID passed from Login
+    private String parentUid;
+
+    private int savedChildIndex = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +66,17 @@ public class ParentDashboardActivity extends AppCompatActivity {
         buttonAddChild = findViewById(R.id.buttonAddChild);
         tvGoToChildDashboard = findViewById(R.id.tvGoToChildDashboard);
         tvLogout = findViewById(R.id.tvLogout);
+
+        spinnerChild.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                savedChildIndex = position;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
 
         // -----------------------------
         // Get Parent UID
@@ -103,9 +120,20 @@ public class ParentDashboardActivity extends AppCompatActivity {
         // Go to Child Dashboard
         // -----------------------------
         tvGoToChildDashboard.setOnClickListener(v -> {
-            Intent childDashIntent = new Intent(ParentDashboardActivity.this, ChildDashboardActivity.class);
-            startActivity(childDashIntent);
+            int index = spinnerChild.getSelectedItemPosition();
+
+            if (index <= 0) {
+                Toast.makeText(this, "Please select a child.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            String selectedChildName = childNames.get(index);
+
+            Intent intent = new Intent(ParentDashboardActivity.this, ChildDashboardActivity.class);
+            intent.putExtra("CHILD_NAME", selectedChildName);
+            startActivity(intent);
         });
+
 
         // -----------------------------
         // Load children from Firestore
@@ -119,7 +147,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
      */
     private void loadChildrenFromFirestore() {
 
-        // Add default "Select Child" option at top
+        // Reset lists and add default option
         childNames.clear();
         childIds.clear();
         childNames.add("Select Child");
@@ -138,16 +166,21 @@ public class ParentDashboardActivity extends AppCompatActivity {
                         childIds.add(id);
                     }
 
+                    // Set adapter only AFTER all items are added
                     ArrayAdapter<String> adapter = new ArrayAdapter<>(
                             ParentDashboardActivity.this,
                             android.R.layout.simple_spinner_item,
                             childNames
                     );
-
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     spinnerChild.setAdapter(adapter);
-                })
 
+                    // Restore saved selection (must be AFTER adapter)
+                    if (savedChildIndex < childNames.size()) {
+                        spinnerChild.setSelection(savedChildIndex);
+                    }
+
+                })
                 .addOnFailureListener(e -> {
                     Toast.makeText(
                             ParentDashboardActivity.this,
@@ -156,4 +189,5 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     ).show();
                 });
     }
+
 }

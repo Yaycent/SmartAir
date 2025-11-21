@@ -14,31 +14,4 @@
     <string name="dateofbirth_e_g_2020_01_01">DateOfBirth (e.g., 2020-01-01)</string>
     <string name="save">Save</string>
     <string name="childdashboard">Child</string>
-
-    <string name="medicine_inventory">Medicine Inventory</string>
-    <string name="purchase_date_hint">Purchase Date (YYYY-MM-DD)</string>
-    <string name="total_dose_hint">Total Dose (e.g., 200)</string>
-    <string name="expiry_date_hint">Expiry Date (YYYY-MM-DD)</string>
-    <string name="remaining_not_calculated">Remaining: Not calculated</string>
-    <string name="save_medicine">Save Medicine Info</string>
-
-    <string name="rescue_med">Rescue Medication</string>
-    <string name="button_controller">Controller Medication</string>
-    <string name="submit_log">Submit Log</string>
-
-    <string name="feelings_title">Feelings</string>
-    <string name="pre_feeling_label">Before medication: How do you feel?</string>
-    <string name="post_feeling_label">After medication: How do you feel?</string>
-
-    <string name="feeling_better">Better</string>
-    <string name="feeling_same">Same</string>
-    <string name="feeling_worse">Worse</string>
-
-    <string name="dose_count_hint">Dose Count (e.g., 1)</string>
-    <string-array name="feeling_options">
-        <item>@string/feeling_better</item>
-        <item>@string/feeling_same</item>
-        <item>@string/feeling_worse</item>
-    </string-array>
-
 </resources>

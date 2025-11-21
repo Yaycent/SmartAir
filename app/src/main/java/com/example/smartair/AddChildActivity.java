@@ -27,9 +27,9 @@ public class AddChildActivity extends AppCompatActivity {
     private static final String TAG = "AddChildActivity";
     private FirebaseFirestore db;
     private String parentId; // to store the parent UID received from parent dash board
-
     private EditText editTextChildName;
     private EditText editTextChildDOB;
+    private EditText editTextChildPB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +58,7 @@ public class AddChildActivity extends AppCompatActivity {
         // UI elements
         editTextChildName = findViewById(R.id.editTextChildName);
         editTextChildDOB = findViewById(R.id.editTextChildDOB);
+        editTextChildPB = findViewById(R.id.editTextChildPB);
         Button buttonSaveChild = findViewById(R.id.buttonSaveChild);
 
         // Set up button click event listener
@@ -67,10 +68,12 @@ public class AddChildActivity extends AppCompatActivity {
     private void saveChildData() {
         String childName = editTextChildName.getText().toString().trim();
         String childDOB = editTextChildDOB.getText().toString().trim();
+        String PB = editTextChildPB.getText().toString().trim();
+        double childPB = Double.parseDouble(PB);
 
         // Basic Input Validation
-        if (childName.isEmpty() || childDOB.isEmpty()) {
-            Toast.makeText(this, "Please enter your child's name and date of birth.", Toast.LENGTH_SHORT).show();
+        if (childName.isEmpty() || childDOB.isEmpty() || PB.isEmpty()) {
+            Toast.makeText(this, "Please enter your child's information.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -84,6 +87,7 @@ public class AddChildActivity extends AppCompatActivity {
         Map<String, Object> childData = new HashMap<>();
         childData.put("childName", childName);
         childData.put("childDOB", childDOB);
+        childData.put("childPB", childPB);
         // *** Most important key fields ***
         childData.put("parentId", parentId);
 

@@ -13,5 +13,5 @@
     <string name="childname">ChildName</string>
     <string name="dateofbirth_e_g_2020_01_01">DateOfBirth (e.g., 2020-01-01)</string>
     <string name="save">Save</string>
-    <string name="childdashboard">Child</string>
+    <string name="childdashboard">Child Dashboard</string>
 </resources>

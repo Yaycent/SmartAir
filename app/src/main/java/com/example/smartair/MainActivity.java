@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -58,14 +59,12 @@ public class MainActivity extends AppCompatActivity {
         }
         */
 
-        // Not logged in: Display login screen
-        setContentView(R.layout.activity_main);
 
         // UI elements
         editTextEmail = findViewById(R.id.editTextEmail);
         editTextPassword = findViewById(R.id.editTextPassword);
         Button buttonLogin = findViewById(R.id.buttonLogin);
-        Button btnGoToRegister = findViewById(R.id.btnGoToRegister);
+        TextView btnGoToRegister = findViewById(R.id.btnGoToRegister);
 
         //login button
         buttonLogin.setOnClickListener(v -> {
@@ -78,7 +77,8 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        Button btnForgotPassword = findViewById(R.id.btnForgotPassword);
+        TextView btnForgotPassword = findViewById(R.id.btnForgotPassword);
+
 
         btnForgotPassword.setOnClickListener(v -> {
             String email = editTextEmail.getText().toString().trim();

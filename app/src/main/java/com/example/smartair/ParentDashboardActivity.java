@@ -24,20 +24,21 @@ import java.util.ArrayList;
 public class ParentDashboardActivity extends AppCompatActivity {
 
     // UI components
-    private Spinner spinnerchild;
+    private Spinner spinnerChild;
     private Button buttonAddChild;
-    private Button buttonGoToChildDashboard;
+    private TextView tvGoToChildDashboard;
+    private TextView tvLogout;
 
     // Firebase
     private FirebaseFirestore db;
     private FirebaseAuth auth;
 
-    // Child info lists
-    private ArrayList<String> childnames = new ArrayList<>();
-    private ArrayList<String> childids = new ArrayList<>();
+    // Child data
+    private ArrayList<String> childNames = new ArrayList<>();
+    private ArrayList<String> childIds = new ArrayList<>();
 
     private static final String TAG = "ParentDashboardActivity";
-    private String parentUid;  // UID from login
+    private String parentUid; // UID passed from Login
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,40 +46,34 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_parent_dashboard);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        TextView tvLogout = findViewById(R.id.tvLogout);
-
-        tvLogout.setOnClickListener(v -> {
-            // optional: sign out from Firebase
-            // FirebaseAuth.getInstance().signOut();
-
-            Intent intent = new Intent(ParentDashboardActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish(); // prevent returning with back button
-        });
-
+        // -----------------------------
+        // Bind UI Elements
+        // -----------------------------
+        spinnerChild = findViewById(R.id.spinnerChildren);
+        buttonAddChild = findViewById(R.id.buttonAddChild);
+        tvGoToChildDashboard = findViewById(R.id.tvGoToChildDashboard);
+        tvLogout = findViewById(R.id.tvLogout);
 
         // -----------------------------
-        // Retrieve parent UID
+        // Get Parent UID
         // -----------------------------
         parentUid = getIntent().getStringExtra("PARENT_UID");
-        if (parentUid != null) {
-            Log.d(TAG, "Logged in Parent UID: " + parentUid);
-        } else {
-            Log.e(TAG, "Error: parent UID missing");
+
+        if (parentUid == null) {
+            Log.e(TAG, "Parent UID is NULL! (Login may have failed or activity restarted)");
+            Toast.makeText(this, "Parent information lost. Please login again.", Toast.LENGTH_LONG).show();
+            finish();
+            return;
         }
 
-        // -----------------------------
-        // UI Binding
-        // -----------------------------
-        buttonAddChild = findViewById(R.id.buttonAddChild);
-        buttonGoToChildDashboard = findViewById(R.id.buttonGoToChildDashboard);
-        spinnerchild = findViewById(R.id.spinnerChildren);
+        Log.d(TAG, "Parent UID Loaded: " + parentUid);
 
         // -----------------------------
         // Firebase Init
@@ -87,7 +82,16 @@ public class ParentDashboardActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
 
         // -----------------------------
-        // Add child button → go to AddChildActivity
+        // Logout
+        // -----------------------------
+        tvLogout.setOnClickListener(v -> {
+            Intent backToLogin = new Intent(ParentDashboardActivity.this, MainActivity.class);
+            startActivity(backToLogin);
+            finish();
+        });
+
+        // -----------------------------
+        // Add Child → AddChildActivity
         // -----------------------------
         buttonAddChild.setOnClickListener(v -> {
             Intent addChildIntent = new Intent(ParentDashboardActivity.this, AddChildActivity.class);
@@ -96,68 +100,60 @@ public class ParentDashboardActivity extends AppCompatActivity {
         });
 
         // -----------------------------
-        // Child Dashboard button
+        // Go to Child Dashboard
         // -----------------------------
-        buttonGoToChildDashboard.setOnClickListener(v -> {
+        tvGoToChildDashboard.setOnClickListener(v -> {
             Intent childDashIntent = new Intent(ParentDashboardActivity.this, ChildDashboardActivity.class);
             startActivity(childDashIntent);
         });
 
         // -----------------------------
-        // Load children into Spinner
+        // Load children from Firestore
         // -----------------------------
         loadChildrenFromFirestore();
     }
 
     /**
-     * loadChildrenFromFirestore()
-     * <p>
-     * Loads all children whose "parentId" == current parent's UID,
-     * and displays them into the dropdown spinner.
+     * Loads children of this parent from Firestore
+     * and puts them into the spinner.
      */
     private void loadChildrenFromFirestore() {
+
+        // Add default "Select Child" option at top
+        childNames.clear();
+        childIds.clear();
+        childNames.add("Select Child");
+        childIds.add("NONE");
 
         db.collection("children")
                 .whereEqualTo("parentId", parentUid)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
 
-                    childnames.clear();
-                    childids.clear();
-
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         String name = doc.getString("childName");
                         String id = doc.getId();
 
-                        childnames.add(name);
-                        childids.add(id);
-                    }
-
-                    if (childnames.isEmpty()) {
-                        Toast.makeText(
-                                ParentDashboardActivity.this,
-                                "Please add a child first.",
-                                Toast.LENGTH_SHORT
-                        ).show();
+                        childNames.add(name);
+                        childIds.add(id);
                     }
 
                     ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                            this,
+                            ParentDashboardActivity.this,
                             android.R.layout.simple_spinner_item,
-                            childnames
+                            childNames
                     );
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    spinnerchild.setAdapter(adapter);
 
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerChild.setAdapter(adapter);
                 })
+
                 .addOnFailureListener(e -> {
                     Toast.makeText(
                             ParentDashboardActivity.this,
                             "Failed to load children: " + e.getMessage(),
                             Toast.LENGTH_SHORT
                     ).show();
-
                 });
     }
 }
-

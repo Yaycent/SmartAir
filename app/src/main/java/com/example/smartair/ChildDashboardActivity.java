@@ -1,6 +1,8 @@
 package com.example.smartair;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,5 +22,16 @@ public class ChildDashboardActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        TextView tvBackToParent = findViewById(R.id.tvBackToParent);
+
+        tvBackToParent.setOnClickListener(v -> {
+            Intent intent = new Intent(ChildDashboardActivity.this, ParentDashboardActivity.class);
+            startActivity(intent);
+            finish();
+        });
+
+
+
     }
 }

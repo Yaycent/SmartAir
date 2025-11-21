@@ -10,7 +10,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class ChildDashboardActivity extends AppCompatActivity {
+
+    private String parentUid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,15 +27,25 @@ public class ChildDashboardActivity extends AppCompatActivity {
             return insets;
         });
 
+        // -----------------------------
+        // 1. Get parent UID safely
+        // -----------------------------
+        parentUid = getIntent().getStringExtra("PARENT_UID");
+
+        if (parentUid == null) {
+            parentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        }
+
+        // -----------------------------
+        // 2. Back to Parent Dashboard
+        // -----------------------------
         TextView tvBackToParent = findViewById(R.id.tvBackToParent);
 
         tvBackToParent.setOnClickListener(v -> {
             Intent intent = new Intent(ChildDashboardActivity.this, ParentDashboardActivity.class);
+            intent.putExtra("PARENT_UID", parentUid);
             startActivity(intent);
             finish();
         });
-
-
-
     }
 }

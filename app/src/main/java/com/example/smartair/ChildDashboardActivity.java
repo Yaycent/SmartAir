@@ -33,8 +33,11 @@ public class ChildDashboardActivity extends AppCompatActivity {
             return insets;
         });
 
+        // Uniformly get Intent
         Intent intent = getIntent();
         childUid = intent.getStringExtra("CHILD_UID");
+        parentUid = intent.getStringExtra("PARENT_UID");
+        String childName = intent.getStringExtra("CHILD_NAME");
 
         if (childUid != null) {
             Log.d(TAG, "Logged in Child UID: " + childUid);
@@ -42,55 +45,42 @@ public class ChildDashboardActivity extends AppCompatActivity {
             Log.e(TAG, "Error: CHILD_UID not received!");
         }
 
-        if (childUid == null) {
-            Log.e(TAG, "Error: PARENT_UID not received!");
-        }
-
-        buttonRescue = findViewById(R.id.buttonRescue);
-        buttonController = findViewById(R.id.buttonController);
-
-        setupButtons();
-        // -----------------------------
-        // 1. Get parent UID safely
-        // -----------------------------
-        parentUid = getIntent().getStringExtra("PARENT_UID");
-
         if (parentUid == null) {
-            parentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            Log.w(TAG, "Warning: PARENT_UID missing from Intent, trying FirebaseAuth...");
+            // Try to get it from the currently logged-in user as a backup
+            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                parentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            }
+        }
+        Log.d(TAG, "Parent UID: " + parentUid);
+
+        // Hi, name
+        TextView hiText = findViewById(R.id.tvHiChild);
+        if (childName != null && hiText != null) {
+            hiText.setText("Hi, " + childName);
         }
 
-        // -----------------------------
-        // 2. Back to Parent Dashboard
-        // -----------------------------
-        TextView tvBackToParent = findViewById(R.id.tvBackToParent);
-
-        tvBackToParent.setOnClickListener(v -> {
-            Intent intent = new Intent(ChildDashboardActivity.this, ParentDashboardActivity.class);
-            intent.putExtra("PARENT_UID", parentUid);
-            startActivity(intent);
-            finish();
-        });
-
-        String childName = getIntent().getStringExtra("CHILD_NAME");
-
-        TextView hiText = findViewById(R.id.tvHiChild);
-        hiText.setText("Hi, " + childName);
-
-    }
-
-    /**
-     * Sets up click listeners for the Rescue, Controller,
-     * and Submit buttons.
-     */
-    private void setupButtons(){
-        // For Rescue
+        // Rescue button
+        buttonRescue = findViewById(R.id.buttonRescue);
         buttonRescue.setOnClickListener(v -> {
-            Toast.makeText(this, "Rescue medication selected", Toast.LENGTH_SHORT).show();
             openEmergencyMedicationScreen();
         });
 
-        // For controller
-        buttonController.setOnClickListener(v -> Toast.makeText(this, "Controller medication selected", Toast.LENGTH_SHORT).show());
+        // Controller button
+        buttonController = findViewById(R.id.buttonController);
+        buttonController.setOnClickListener(v -> {
+            Toast.makeText(this, "Controller clicked", Toast.LENGTH_SHORT).show();
+        });
+
+        // Back to Parent Dashboard
+        TextView tvBackToParent = findViewById(R.id.tvBackToParent);
+        tvBackToParent.setOnClickListener(v -> {
+            Intent backintent = new Intent(ChildDashboardActivity.this, ParentDashboardActivity.class);
+            backintent.putExtra("PARENT_UID", parentUid);
+            startActivity(backintent);
+            finish();
+        });
+
     }
 
     /**

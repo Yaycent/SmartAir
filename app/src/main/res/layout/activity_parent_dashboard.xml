@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -8,43 +9,81 @@
     android:padding="32dp"
     tools:context=".ParentDashboardActivity">
 
+    <!-- Top Left: Hi, Parent -->
     <TextView
-        android:id="@+id/textViewDashboardTitle"
+        android:id="@+id/tvHiParent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/parentDashboard"
-        android:textSize="24sp"
-
-        app:layout_constraintBottom_toTopOf="@+id/buttonAddChild"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
-
-        app:layout_constraintStart_toStartOf="parent"
+        android:text="Hi, Parent"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.05"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- Top Right: Child Dashboard link -->
+    <TextView
+        android:id="@+id/tvGoToChildDashboard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Child Dashboard →"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:padding="4dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp" />
+
+    <!-- Manage Children Button (Left side) -->
     <Button
         android:id="@+id/buttonAddChild"
+        style="@style/SmartAir.Button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
         android:text="@string/manage_children"
+        android:backgroundTint="#F5A849"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginTop="36dp"
+        app:layout_constraintTop_toBottomOf="@id/tvHiParent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewDashboardTitle" />
 
-    <Button
-        android:id="@+id/buttonGoToChildDashboard"
+    <!-- Single Select Kid Button -->
+    <Spinner
+        android:id="@+id/spinnerChildren"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:background="@drawable/spinner_button_style"
+        android:spinnerMode="dropdown"
+        android:layout_marginTop="40dp"
+        android:popupBackground="#FFFFFF"
+        android:dropDownWidth="200dp"
+        android:dropDownVerticalOffset="10dp"
+        android:foreground="@android:color/transparent"
+        app:layout_constraintTop_toBottomOf="@id/tvHiParent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
+    <!-- Logout button (Bottom Right) -->
+    <TextView
+        android:id="@+id/tvLogout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/childDashboard"
-
+        android:text="Logout"
+        android:textSize="16sp"
+        android:textColor="#757575"
+        android:padding="4dp"
+        android:background="@android:color/transparent"
+        android:clickable="true"
+        android:focusable="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonAddChild" />
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

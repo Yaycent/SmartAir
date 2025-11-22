@@ -51,112 +51,15 @@
         app:layout_constraintTop_toBottomOf="@+id/buttonAddChild"
         app:layout_constraintVertical_bias="0.125" />
 
-    <TextView
-        android:id="@+id/textViewMedicineTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/medicine_inventory"
-        android:textSize="24sp"
-        android:textStyle="bold"
-
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonGoToChildDashboard"
-        app:layout_constraintVertical_bias="0.109" />
-
-    <EditText
-        android:id="@+id/editPurchaseDate"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="24dp"
-
-        android:autofillHints="date"
-        android:hint="@string/purchase_date_hint"
-        android:importantForAutofill="yes"
-
-        android:inputType="date"
-
-        android:textColor="@android:color/black"
-        android:textColorHint="@android:color/black"
-
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewMedicineTitle"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <EditText
-        android:id="@+id/editTotalDose"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="24dp"
-
-        android:autofillHints="quantity"
-        android:hint="@string/total_dose_hint"
-        android:inputType="number"
-
-        android:textColor="@android:color/black"
-        android:textColorHint="@android:color/black"
-
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editPurchaseDate"
-        app:layout_constraintVertical_bias="0.005" />
-
-    <EditText
-        android:id="@+id/editExpiryDate"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginTop="16dp"
-
-        android:hint="@string/expiry_date_hint"
-        android:inputType="date"
-        android:autofillHints="expirationDate"
-
-        android:textColor="@android:color/black"
-        android:textColorHint="@android:color/black"
-
-        app:layout_constraintTop_toBottomOf="@+id/editTotalDose"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/textRemainingDose"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-
-        android:text="@string/remaining_not_calculated"
-        android:textColor="@android:color/black"
-        android:textSize="24sp"
-        android:textStyle="italic"
-
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.493"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editExpiryDate" />
-
     <Button
-        android:id="@+id/buttonSaveMedicine"
+        android:id="@+id/buttonOpenMedicineCabinet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="40dp"
+        android:text="@string/medicine_cabinet"
 
-        android:text="@string/save_medicine"
-
-        app:layout_constraintTop_toBottomOf="@id/textRemainingDose"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/buttonGoToChildDashboard" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

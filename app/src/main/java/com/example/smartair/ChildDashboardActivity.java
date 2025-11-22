@@ -31,7 +31,7 @@ import java.util.Map;
 public class ChildDashboardActivity extends AppCompatActivity {
     private static final String TAG = "ChildDashboardActivity";
     private FirebaseFirestore db;
-    private String childID;
+    private String childId;
     private Double personalBest;
     private EditText editTextChildPEF;
     private EditText editTextPEFTag;
@@ -51,10 +51,10 @@ public class ChildDashboardActivity extends AppCompatActivity {
         // Initialize Firebase Auth
         db = FirebaseFirestore.getInstance();
         Intent intent = getIntent();
-        childID = intent.getStringExtra("CHILD_ID");
+        childId = intent.getStringExtra("CHILD_ID");
 
         // checking childID
-        if (childID == null) {
+        if (childId == null) {
             String parentUID = null;
             if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                 parentUID = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -67,15 +67,15 @@ public class ChildDashboardActivity extends AppCompatActivity {
 
             // Query the database to find the child id
             db.collection("children")
-                    .whereEqualTo("parentID", parentUID)
+                    .whereEqualTo("parentId", parentUID)
                     .limit(1)
                     .get()
                     .addOnSuccessListener((OnSuccessListener<QuerySnapshot>) queryDocumentSnapshots -> {
                         if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
                             DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
-                            childID = doc.getId();
-                            Log.d(TAG, "Current childID: " + childID);
-                            retrieveChildPB(childID);
+                            childId = doc.getId();
+                            Log.d(TAG, "Current childID: " + childId);
+                            retrieveChildPB(childId);
                         } else {
                             Toast.makeText(this, "No child found for the current parent", Toast.LENGTH_SHORT).show();
                         }
@@ -86,7 +86,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
                         Toast.makeText(this, "Error finding child", Toast.LENGTH_SHORT).show();
                     });
         }
-        else retrieveChildPB(childID);
+        else retrieveChildPB(childId);
 
         // UI elements
         editTextChildPEF = findViewById(R.id.editChildPEF);
@@ -148,7 +148,8 @@ public class ChildDashboardActivity extends AppCompatActivity {
         final double PEFValue;
         try {
             PEFValue = Double.parseDouble(childPEF);
-        } catch (NumberFormatException ex) {
+        }
+        catch (NumberFormatException ex) {
             Toast.makeText(this, "Please enter a valid PEF value.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -156,7 +157,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
         // Determine zone
         String zone = determineZone(PEFValue, personalBest);
 
-        // Update UI label color
+        // Update UI text color
         updateZoneText(zone);
 
         // Save PEF value
@@ -192,13 +193,13 @@ public class ChildDashboardActivity extends AppCompatActivity {
     }
 
     private void savePEFLog(double PEFValue, String zone, String zoneTag) {
-        if (childID == null)    {
-            Toast.makeText(this, "Child ID missing. Cannot save data.", Toast.LENGTH_SHORT).show();
+        if (childId == null)    {
+            Toast.makeText(this, "Child Id missing. Cannot save data.", Toast.LENGTH_SHORT).show();
             return;
         }
         // Create a Data Model (Document)
         Map<String, Object> childData = new HashMap<>();
-        childData.put("childID", childID);
+        childData.put("childId", childId);
         childData.put("timeStamp", System.currentTimeMillis());
         childData.put("value", PEFValue);
         childData.put("zone", zone);
@@ -206,6 +207,8 @@ public class ChildDashboardActivity extends AppCompatActivity {
 
         // Call the Firestore API to create a new document in the “children” collection.
         db.collection("children")
+                .document("childId")
+                .collection("PEFLogs")
                 .add(childData)
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override

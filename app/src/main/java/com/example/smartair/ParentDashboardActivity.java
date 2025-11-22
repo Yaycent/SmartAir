@@ -11,11 +11,13 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -44,6 +46,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private String parentUid;
 
     private int savedChildIndex = 0;
+
 
 
     @Override
@@ -134,7 +137,13 @@ public class ParentDashboardActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-
+        // Go to Medicine Cabinet
+        Button buttonMedicineCabinet = findViewById(R.id.buttonOpenMedicineCabinet);
+        buttonMedicineCabinet.setOnClickListener(v -> {
+            Intent medIntent = new Intent(ParentDashboardActivity.this, MedicineCabinetActivity.class);
+            medIntent.putExtra("PARENT_UID", parentUid);
+            startActivity(medIntent);
+        });
         // -----------------------------
         // Load children from Firestore
         // -----------------------------

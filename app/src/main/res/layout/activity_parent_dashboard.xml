@@ -7,7 +7,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="32dp"
-    tools:context=".ParentDashboardActivity">
+    tools:context=".ParentDashboardActivity"
+    tools:ignore="ExtraText">
 
     <!-- Top Left: Hi, Parent -->
     <TextView
@@ -54,8 +55,8 @@
     <!-- Single Select Kid Button -->
     <Spinner
         android:id="@+id/spinnerChildren"
-        android:layout_width="wrap_content"
         android:layout_height="48dp"
+        android:layout_width="wrap_content"
         android:paddingHorizontal="16dp"
         android:paddingVertical="8dp"
         android:background="@drawable/spinner_button_style"
@@ -66,7 +67,19 @@
         android:dropDownVerticalOffset="10dp"
         android:foreground="@android:color/transparent"
         app:layout_constraintTop_toBottomOf="@id/tvHiParent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" /> 
+
+    <Button
+        android:id="@+id/buttonOpenMedicineCabinet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="@string/medicine_cabinet"
+
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttonGoToChildDashboard" />
+
 
 
     <!-- Logout button (Bottom Right) -->

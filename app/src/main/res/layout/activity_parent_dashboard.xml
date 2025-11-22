@@ -67,22 +67,22 @@
         android:dropDownVerticalOffset="10dp"
         android:foreground="@android:color/transparent"
         app:layout_constraintTop_toBottomOf="@id/tvHiParent"
-        app:layout_constraintEnd_toEndOf="parent" /> 
+        app:layout_constraintEnd_toEndOf="parent" />
 
+
+    <!-- Logout button (Bottom Right) -->
     <Button
         android:id="@+id/buttonOpenMedicineCabinet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="172dp"
         android:text="@string/medicine_cabinet"
 
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.536"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buttonGoToChildDashboard" />
+        app:layout_constraintTop_toBottomOf="@+id/tvGoToChildDashboard" />
 
-
-
-    <!-- Logout button (Bottom Right) -->
     <TextView
         android:id="@+id/tvLogout"
         android:layout_width="wrap_content"

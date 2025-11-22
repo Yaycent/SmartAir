@@ -31,6 +31,7 @@ import java.util.Map;
 public class ChildDashboardActivity extends AppCompatActivity {
     private static final String TAG = "ChildDashboardActivity";
     private FirebaseFirestore db;
+    private String childName;
     private String childId;
     private Double personalBest;
     private EditText editTextChildPEF;
@@ -48,64 +49,39 @@ public class ChildDashboardActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Initialize Firebase Auth
+        // initialize Firebase Auth
         db = FirebaseFirestore.getInstance();
         Intent intent = getIntent();
+        childName = intent.getStringExtra("CHILD_NAME");
         childId = intent.getStringExtra("CHILD_ID");
 
-        // checking childID
-        if (childId == null) {
-            String parentUID = null;
-            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-                parentUID = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            }
-
-            if (parentUID == null) {
-                Toast.makeText(this, "No child selected.", Toast.LENGTH_SHORT).show();
-                finish();
-            }
-
-            // Query the database to find the child id
-            db.collection("children")
-                    .whereEqualTo("parentId", parentUID)
-                    .limit(1)
-                    .get()
-                    .addOnSuccessListener((OnSuccessListener<QuerySnapshot>) queryDocumentSnapshots -> {
-                        if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
-                            DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
-                            childId = doc.getId();
-                            Log.d(TAG, "Current childID: " + childId);
-                            retrieveChildPB(childId);
-                        } else {
-                            Toast.makeText(this, "No child found for the current parent", Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    // cannot query
-                    .addOnFailureListener(f -> {
-                        Log.w(TAG, "Failed to load child documents", f);
-                        Toast.makeText(this, "Error finding child", Toast.LENGTH_SHORT).show();
-                    });
+        // checking childName
+        if (childName == null || childId == null) {
+            Log.e(TAG, "Failed to retrieve child's name or child document id");
+            Toast.makeText(this, "Error retrieving child data. Please try again.", Toast.LENGTH_SHORT).show();
+            return;
         }
-        else retrieveChildPB(childId);
+        retrieveChildPB(childId);
 
-        // UI elements
+        // connect UI elements
         editTextChildPEF = findViewById(R.id.editChildPEF);
         editTextPEFTag = findViewById(R.id.editTextPEFTag);
         textViewZone = findViewById(R.id.textViewZone);
         Button buttonRecordPEF = findViewById(R.id.buttonRecordPEF);
 
-        //Initialize zone
+        // initialize zone (black for unknown)
         textViewZone.setText(getString(R.string.zone_unknown));
         textViewZone.setTextColor(ContextCompat.getColor(this, android.R.color.black));
 
         buttonRecordPEF.setOnClickListener(v -> recordChildPEF());
     }
 
-    private void retrieveChildPB(String childDocID) {
+    private void retrieveChildPB(String childId) {
+        // query the database to find PB based on childId
         db.collection("children")
-                .document(childDocID)
+                .document(childId)
                 .get()
-                .addOnSuccessListener((OnSuccessListener<DocumentSnapshot>) documentSnapshot -> {
+                .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot != null && documentSnapshot.exists()) {
                         Double PB = null;
                         Object pbObject = documentSnapshot.get("childPB");
@@ -128,7 +104,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(f -> {
                     Log.w(TAG, "Error loading child data.", f);
-                    Toast.makeText(this, "Error loading child data", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Error loading child data.", Toast.LENGTH_SHORT).show();
                     finish();
                 });
     }
@@ -145,22 +121,23 @@ public class ChildDashboardActivity extends AppCompatActivity {
             Toast.makeText(this, "PEF is empty. Please enter a PEF value.", Toast.LENGTH_SHORT).show();
             return;
         }
+
         final double PEFValue;
         try {
             PEFValue = Double.parseDouble(childPEF);
         }
-        catch (NumberFormatException ex) {
+        catch (NumberFormatException numEx) {
             Toast.makeText(this, "Please enter a valid PEF value.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Determine zone
+        // determine zone
         String zone = determineZone(PEFValue, personalBest);
 
-        // Update UI text color
+        // update UI text color
         updateZoneText(zone);
 
-        // Save PEF value
+        // save PEF value
         savePEFLog(PEFValue, zone, zoneTag);
     }
 
@@ -189,15 +166,17 @@ public class ChildDashboardActivity extends AppCompatActivity {
             textColor = android.R.color.holo_orange_light;
         }
         else textColor = android.R.color.holo_red_light;
+
         textViewZone.setTextColor(ContextCompat.getColor(this, textColor));
     }
 
     private void savePEFLog(double PEFValue, String zone, String zoneTag) {
-        if (childId == null)    {
-            Toast.makeText(this, "Child Id missing. Cannot save data.", Toast.LENGTH_SHORT).show();
+        if (childName == null)    {
+            Toast.makeText(this, "Child name is missing. Cannot save data.", Toast.LENGTH_SHORT).show();
             return;
         }
-        // Create a Data Model (Document)
+
+        // create a document
         Map<String, Object> childData = new HashMap<>();
         childData.put("childId", childId);
         childData.put("timeStamp", System.currentTimeMillis());
@@ -205,26 +184,19 @@ public class ChildDashboardActivity extends AppCompatActivity {
         childData.put("zone", zone);
         childData.put("tag", zoneTag);
 
-        // Call the Firestore API to create a new document in the “children” collection.
+        // call the Firestore API to create a new document in the “pefLogs” collection.
         db.collection("children")
-                .document("childId")
-                .collection("PEFLogs")
+                .document(childName)
+                .collection("pefLogs")
                 .add(childData)
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Log.d(TAG, "Child document added with ID: " + documentReference.getId());
-                        Toast.makeText(ChildDashboardActivity.this, "Child information saved successfully!", Toast.LENGTH_SHORT).show();
-
-                        finish();
-                    }
+                .addOnSuccessListener(documentReference -> {
+                    Log.d(TAG, "Child document added with ID: " + documentReference.getId());
+                    Toast.makeText(ChildDashboardActivity.this, "Child information saved successfully!", Toast.LENGTH_SHORT).show();
+                    finish();
                 })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error adding child document", e);
-                        Toast.makeText(ChildDashboardActivity.this, "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    }
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error adding child document", e);
+                    Toast.makeText(ChildDashboardActivity.this, "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
 

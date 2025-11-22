@@ -8,7 +8,7 @@
     <string name="registerbutton">Register</string>
     <string name="parent_login">Parent Login</string>
     <string name="log_in">Log in</string>
-    <string name="parentdashborad">ParentDashborad</string>
+    <string name="parentdashboard">ParentDashboard</string>
     <string name="manage_children">Manage Children</string>
     <string name="childname">ChildName</string>
     <string name="dateofbirth_e_g_2020_01_01">DateOfBirth (e.g., 2020-01-01)</string>

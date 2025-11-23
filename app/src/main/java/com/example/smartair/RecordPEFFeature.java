@@ -63,12 +63,19 @@ public class RecordPEFFeature extends AppCompatActivity {
         editTextPEFTag = findViewById(R.id.editTextPEFTag);
         textViewZone = findViewById(R.id.textViewZone);
         Button buttonRecordPEF = findViewById(R.id.buttonRecordPEF);
+        Button buttonBackToChildDashboard = findViewById(R.id.buttonBackToChildDashboard);
 
         // initialize zone (black for unknown)
         textViewZone.setText(getString(R.string.zone_unknown));
         textViewZone.setTextColor(ContextCompat.getColor(this, android.R.color.black));
 
         buttonRecordPEF.setOnClickListener(v -> recordChildPEF());
+        buttonBackToChildDashboard.setOnClickListener(v->{
+            Intent backToChilDashboardIntent = new Intent(RecordPEFFeature.this, ChildDashboardActivity.class);
+            backToChilDashboardIntent.putExtra("CHILD_NAME", childName);
+            backToChilDashboardIntent.putExtra("CHILD_ID", childId);
+            startActivity(backToChilDashboardIntent);
+        });
     }
 
     private void retrieveChildPB(String childId) {
@@ -187,7 +194,6 @@ public class RecordPEFFeature extends AppCompatActivity {
                 .addOnSuccessListener(documentReference -> {
                     Log.d(TAG, "Child document added with ID: " + documentReference.getId());
                     Toast.makeText(RecordPEFFeature.this, "Child information saved successfully!", Toast.LENGTH_SHORT).show();
-                    finish();
                 })
                 .addOnFailureListener(e -> {
                     Log.w(TAG, "Error adding child document", e);

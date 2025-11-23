@@ -60,9 +60,15 @@ public class AddChildActivity extends AppCompatActivity {
         editTextChildDOB = findViewById(R.id.editTextChildDOB);
         editTextChildPB = findViewById(R.id.editTextChildPB);
         Button buttonSaveChild = findViewById(R.id.buttonSaveChild);
+        Button buttonBackToParentDashboard = findViewById(R.id.buttonBackToParentDashboard1);
 
         // Set up button click event listener
         buttonSaveChild.setOnClickListener(v -> saveChildData());
+        buttonBackToParentDashboard.setOnClickListener(v->{
+            Intent backToParentDashboardIntent = new Intent(AddChildActivity.this, ParentDashboardActivity.class);
+            backToParentDashboardIntent.putExtra("PARENT_UID", parentId);
+            startActivity(backToParentDashboardIntent);
+        });
     }
 
     private void saveChildData() {

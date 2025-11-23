@@ -5,6 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="32dp"
     tools:context=".RecordPEFFeature">
 
     <TextView
@@ -26,11 +27,11 @@
 
     <EditText
         android:id="@+id/editTextChildPEF"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="100dp"
+        android:layout_marginStart="50dp"
         android:layout_marginTop="40dp"
-        android:layout_marginEnd="100dp"
+        android:layout_marginEnd="50dp"
         android:ems="10"
         android:hint="@string/childPEF"
         android:inputType="numberDecimal"
@@ -43,9 +44,9 @@
         android:id="@+id/editTextPEFTag"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="100dp"
+        android:layout_marginStart="50dp"
         android:layout_marginTop="270dp"
-        android:layout_marginEnd="100dp"
+        android:layout_marginEnd="50dp"
         android:ems="10"
         android:hint="@string/PEFTag"
         android:inputType="text"
@@ -56,8 +57,8 @@
 
     <Button
         android:id="@+id/buttonRecordPEF"
-        android:layout_width="255dp"
-        android:layout_height="83dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="80dp"
         android:layout_marginTop="62dp"
         android:layout_marginEnd="80dp"
@@ -69,4 +70,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextChildPEF"
         app:layout_constraintVertical_bias="0.0" />
+
+    <Button
+        android:id="@+id/buttonBackToChildDashboard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/goBackButton"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

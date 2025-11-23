@@ -128,9 +128,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
             }
 
             String selectedChildName = childNames.get(index);
+            String selectedChildId = childIds.get(index);
 
             Intent intent = new Intent(ParentDashboardActivity.this, ChildDashboardActivity.class);
             intent.putExtra("CHILD_NAME", selectedChildName);
+            intent.putExtra("CHILD_ID", selectedChildId);
+            intent.putExtra("PARENT_UID", parentUid);
             startActivity(intent);
         });
 

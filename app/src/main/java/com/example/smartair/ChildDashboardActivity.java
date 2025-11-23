@@ -14,6 +14,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
     private static final String TAG = "ChildDashboardActivity";
     private String childName;
     private String childId;
+    private String parentUid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,16 +31,24 @@ public class ChildDashboardActivity extends AppCompatActivity {
         Intent intent = getIntent();
         childName = intent.getStringExtra("CHILD_NAME");
         childId = intent.getStringExtra("CHILD_ID");
+        parentUid = intent.getStringExtra("PARENT_UID");
 
-        Button buttonRecordPEF = findViewById(R.id.buttonToRecordPEF);
+        Button buttonToRecordPEF = findViewById(R.id.buttonToRecordPEF);
+        Button buttonBackToParentDashboard = findViewById(R.id.buttonBackToParentDashboard2);
 
         // ChildDashboard -> RecordPEFFeature
         // pass childId and childName
-        buttonRecordPEF.setOnClickListener(v -> {
+        buttonToRecordPEF.setOnClickListener(v -> {
             Intent childInfoIntent = new Intent(ChildDashboardActivity.this, RecordPEFFeature.class);
             childInfoIntent.putExtra("CHILD_ID", childId);
             childInfoIntent.putExtra("CHILD_NAME", childName);
             startActivity(childInfoIntent);
+        });
+
+        buttonBackToParentDashboard.setOnClickListener(v->{
+            Intent backToParentDashboardIntent = new Intent(ChildDashboardActivity.this, ParentDashboardActivity.class );
+            backToParentDashboardIntent.putExtra("PARENT_UID", parentUid);
+            startActivity(backToParentDashboardIntent);
         });
 
     }

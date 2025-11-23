@@ -22,4 +22,5 @@
     <string name="todayZone">Today\'s Zone</string>
     <string name="zone_unknown">Zone: Unknown</string>
     <string name="zoneSetting">Zone: %1$s</string>
+    <string name="goBackButton">Back</string>
 </resources>

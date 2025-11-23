@@ -1,0 +1,64 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="32dp"
+    tools:context=".RoleSelectionActivity">
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.5" />
+
+    <TextView
+        android:id="@+id/text_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Who is using Smart Air?"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="48dp"
+        android:gravity="center" />
+
+    <Button
+        android:id="@+id/button_child"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="    Child"
+        android:textSize="18sp"
+        android:drawableRight="@drawable/baseline_arrow_right_24"
+        android:paddingRight="16dp"
+        android:drawablePadding="8dp"
+        android:layout_marginBottom="24dp"
+        android:paddingLeft="48dp" />
+
+    <Button
+        android:id="@+id/button_parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="     Parent"
+        android:textSize="18sp"
+        android:drawableRight="@drawable/baseline_arrow_right_24"
+        android:paddingRight="16dp"
+        android:drawablePadding="8dp"
+        android:layout_marginBottom="24dp"
+        android:paddingLeft="48dp" />
+
+    <Button
+        android:id="@+id/button_provider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="      Provider"
+        android:textSize="18sp"
+        android:drawableRight="@drawable/baseline_arrow_right_24"
+        android:paddingRight="16dp"
+        android:drawablePadding="8dp"
+        android:paddingLeft="48dp" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1.5" />
+
+</LinearLayout>

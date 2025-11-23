@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+        <!-- Primary Title H1 -->
+        <style name="SmartAir.H1" parent="TextAppearance.Material3.HeadlineLarge">
+            <item name="android:textSize">28sp</item>
+            <item name="android:textColor">#212121</item>
+            <item name="fontFamily">sans-serif</item> <!-- Roboto Regular/Bold 自动切换 -->
+        </style>
+
+        <!-- Section Title H2 -->
+        <style name="SmartAir.H2" parent="TextAppearance.Material3.HeadlineMedium">
+            <item name="android:textSize">20sp</item>
+            <item name="android:textColor">#212121</item>
+            <item name="fontFamily">sans-serif-medium</item> <!-- Roboto Medium -->
+        </style>
+
+        <!-- Main Body Body -->
+        <style name="SmartAir.Body" parent="TextAppearance.Material3.BodyLarge">
+            <item name="android:textSize">16sp</item>
+            <item name="android:textColor">#212121</item>
+            <item name="fontFamily">sans-serif</item> <!-- Roboto Regular -->
+        </style>
+
+        <!-- Caption Small -->
+        <style name="SmartAir.Small" parent="TextAppearance.Material3.BodySmall">
+            <item name="android:textSize">14sp</item>
+            <item name="android:textColor">#666666</item>
+            <item name="fontFamily">sans-serif</item> <!-- Roboto Regular -->
+        </style>
+
+        <!-- SmartAir button-->
+        <style name="SmartAir.Button" parent="Widget.Material3.Button">
+            <item name="android:backgroundTint">#F5A849</item>
+            <item name="android:textColor">@android:color/white</item>
+            <item name="cornerFamily">rounded</item>
+            <item name="cornerSize">12dp</item>
+            <item name="android:paddingHorizontal">8dp</item>
+            <item name="android:paddingVertical">12dp</item>
+            <item name="fontFamily">sans-serif-medium</item> <!-- Roboto Medium -->
+        </style>
+
+</resources>

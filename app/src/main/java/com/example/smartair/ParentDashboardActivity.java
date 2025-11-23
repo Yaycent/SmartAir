@@ -45,7 +45,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
     private int savedChildIndex = 0;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,7 +120,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
         // -----------------------------
         tvGoToChildDashboard.setOnClickListener(v -> {
             int index = spinnerChild.getSelectedItemPosition();
-
+          
             if (index <= 0) {
                 Toast.makeText(this, "Please select a child.", Toast.LENGTH_SHORT).show();
                 return;
@@ -137,7 +136,13 @@ public class ParentDashboardActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-
+        // Go to Medicine Cabinet
+        Button buttonMedicineCabinet = findViewById(R.id.buttonOpenMedicineCabinet);
+        buttonMedicineCabinet.setOnClickListener(v -> {
+            Intent medIntent = new Intent(ParentDashboardActivity.this, MedicineCabinetActivity.class);
+            medIntent.putExtra("PARENT_UID", parentUid);
+            startActivity(medIntent);
+        });
         // -----------------------------
         // Load children from Firestore
         // -----------------------------

@@ -3,7 +3,19 @@
     <style name="Base.Theme.SmartAir" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
     </style>
 
-    <style name="Theme.SmartAir" parent="Base.Theme.SmartAir" />
+    <!-- Final Theme applied to the app -->
+    <style name="Theme.SmartAir" parent="Base.Theme.SmartAir">
+
+        <item name="android:windowBackground">#FAE9D3</item>
+        <item name="textAppearanceHeadlineLarge">@style/SmartAir.H1</item>
+        <item name="textAppearanceHeadlineMedium">@style/SmartAir.H2</item>
+        <item name="textAppearanceBodyLarge">@style/SmartAir.Body</item>
+        <item name="textAppearanceBodySmall">@style/SmartAir.Small</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="materialButtonStyle">@style/SmartAir.Button</item>
+    </style>
+
 </resources>

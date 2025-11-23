@@ -6,6 +6,9 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.widget.ImageButton;
+import android.view.View;
+
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -22,6 +25,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class AddChildActivity extends AppCompatActivity {
 
     private static final String TAG = "AddChildActivity";
@@ -36,6 +40,11 @@ public class AddChildActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_child);
+
+        ImageButton buttonBack = findViewById(R.id.buttonBack);
+        buttonBack.setOnClickListener(v -> finish());
+
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -69,6 +78,12 @@ public class AddChildActivity extends AppCompatActivity {
             backToParentDashboardIntent.putExtra("PARENT_UID", parentId);
             startActivity(backToParentDashboardIntent);
         });
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
     }
 
     private void saveChildData() {

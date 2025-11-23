@@ -3,18 +3,17 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/providerlogin"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="32dp"
-    tools:context=".MainActivity">
+    tools:context=".ProviderLoginActivity">
 
-    <!-- Title -->
     <TextView
         android:id="@+id/textViewTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/parent_login"
+        android:text="Provider Login"
         android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@android:color/black"
@@ -22,7 +21,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Email Field Box -->
     <LinearLayout
         android:id="@+id/emailBox"
         android:layout_width="0dp"
@@ -38,14 +36,13 @@
             android:id="@+id/editTextEmail"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:hint="@string/email"
+            android:hint="Email"
             android:background="@android:color/transparent"
             android:inputType="textEmailAddress"
             android:autofillHints="emailAddress"
             android:padding="8dp" />
     </LinearLayout>
 
-    <!-- Password Field Box -->
     <LinearLayout
         android:id="@+id/passwordBox"
         android:layout_width="0dp"
@@ -61,13 +58,12 @@
             android:id="@+id/editTextPassword"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:hint="@string/password"
+            android:hint="Password"
             android:background="@android:color/transparent"
             android:inputType="textPassword"
             android:padding="8dp" />
     </LinearLayout>
 
-    <!-- Forgot password -->
     <TextView
         android:id="@+id/btnForgotPassword"
         android:layout_width="wrap_content"
@@ -79,24 +75,22 @@
         app:layout_constraintTop_toBottomOf="@id/passwordBox"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Login Button -->
     <Button
         android:id="@+id/buttonLogin"
         android:layout_width="269dp"
         android:layout_height="59dp"
         android:layout_marginTop="32dp"
-        android:text="@string/log_in"
+        android:text="Log In"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btnForgotPassword" />
 
-    <!-- Register -->
     <TextView
         android:id="@+id/btnGoToRegister"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="New to SmartAir? Click here"
+        android:text="New to SmartAir? Click here to Register"
         android:textColor="#757575"
         android:textSize="14sp"
         app:layout_constraintTop_toBottomOf="@id/buttonLogin"

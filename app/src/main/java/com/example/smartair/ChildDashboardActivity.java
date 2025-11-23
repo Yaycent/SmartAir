@@ -2,6 +2,7 @@ package com.example.smartair;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
@@ -15,10 +16,11 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 
-public class ChildDashboardActivity extends AppCompatActivity {
-  
+public class ChildDashboardActivity extends AppCompatActivity {  
     private static final String TAG = "ChildDashboardActivity";
     private Button buttonRescue, buttonController;
+    private String childName;
+    private String childId;
     private String childUid;
     private String parentUid;
 
@@ -32,13 +34,32 @@ public class ChildDashboardActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
+      
         // Uniformly get Intent
         Intent intent = getIntent();
         childUid = intent.getStringExtra("CHILD_UID");
+        childId = intent.getStringExtra("CHILD_ID");
         parentUid = intent.getStringExtra("PARENT_UID");
         String childName = intent.getStringExtra("CHILD_NAME");
+      
+      
+        Button buttonToRecordPEF = findViewById(R.id.buttonToRecordPEF);
+        Button buttonBackToParentDashboard = findViewById(R.id.buttonBackToParentDashboard2);
 
+        // ChildDashboard -> RecordPEFFeature
+        // pass childId and childName
+        buttonToRecordPEF.setOnClickListener(v -> {
+            Intent childInfoIntent = new Intent(ChildDashboardActivity.this, RecordPEFFeature.class);
+            childInfoIntent.putExtra("CHILD_ID", childId);
+            childInfoIntent.putExtra("CHILD_NAME", childName);
+            startActivity(childInfoIntent);
+        });
+
+        buttonBackToParentDashboard.setOnClickListener(v->{
+            Intent backToParentDashboardIntent = new Intent(ChildDashboardActivity.this, ParentDashboardActivity.class );
+            backToParentDashboardIntent.putExtra("PARENT_UID", parentUid);
+            startActivity(backToParentDashboardIntent);
+          
         if (childUid != null) {
             Log.d(TAG, "Logged in Child UID: " + childUid);
         } else {

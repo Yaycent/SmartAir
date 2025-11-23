@@ -11,13 +11,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -46,8 +44,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private String parentUid;
 
     private int savedChildIndex = 0;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,16 +120,19 @@ public class ParentDashboardActivity extends AppCompatActivity {
         // -----------------------------
         tvGoToChildDashboard.setOnClickListener(v -> {
             int index = spinnerChild.getSelectedItemPosition();
-
+          
             if (index <= 0) {
                 Toast.makeText(this, "Please select a child.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             String selectedChildName = childNames.get(index);
+            String selectedChildId = childIds.get(index);
 
             Intent intent = new Intent(ParentDashboardActivity.this, ChildDashboardActivity.class);
             intent.putExtra("CHILD_NAME", selectedChildName);
+            intent.putExtra("CHILD_ID", selectedChildId);
+            intent.putExtra("PARENT_UID", parentUid);
             startActivity(intent);
         });
 

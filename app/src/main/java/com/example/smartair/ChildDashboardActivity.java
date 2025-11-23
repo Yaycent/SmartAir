@@ -52,7 +52,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
         Button buttonRecordPEF = findViewById(R.id.buttonRecordPEF);
 
         // ChildDashboard -> RecordPEFFeature
-        // only pass the child ID
+        // pass childId and childName
         buttonRecordPEF.setOnClickListener(v -> {
             Intent childInfoIntent = new Intent(ChildDashboardActivity.this, RecordPEFFeature.class);
             childInfoIntent.putExtra("CHILD_ID", childId);

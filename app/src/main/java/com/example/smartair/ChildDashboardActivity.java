@@ -18,7 +18,7 @@ import com.google.firebase.auth.FirebaseAuth;
 public class ChildDashboardActivity extends AppCompatActivity {
   
     private static final String TAG = "ChildDashboardActivity";
-    private Button buttonRescue, buttonController;
+    private Button buttonRescue, buttonController, buttonCheckin;
     private String childUid;
     private String parentUid;
 
@@ -70,6 +70,25 @@ public class ChildDashboardActivity extends AppCompatActivity {
         buttonController = findViewById(R.id.buttonController);
         buttonController.setOnClickListener(v -> {
             Toast.makeText(this, "Controller clicked", Toast.LENGTH_SHORT).show();
+        });
+        
+        buttonCheckin = findViewById(R.id.buttonCheckin);
+        buttonCheckin.setOnClickListener(v -> {
+
+            Toast.makeText(this, "Daily Check-in clicked!", Toast.LENGTH_SHORT).show();
+
+            if (childUid == null) {
+                Toast.makeText(this, "Error: childUid is null!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Intent checkInIntent = new Intent(ChildDashboardActivity.this, DailyCheckInActivity.class);
+
+
+            checkInIntent.putExtra("CHILD_UID", childUid);
+            checkInIntent.putExtra("PARENT_UID", parentUid);
+
+            startActivity(checkInIntent);
         });
 
         // Back to Parent Dashboard

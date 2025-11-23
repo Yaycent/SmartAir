@@ -28,6 +28,11 @@
         <activity
             android:name=".AddChildActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".DailyCheckInActivity"
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

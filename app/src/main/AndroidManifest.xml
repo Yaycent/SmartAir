@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAir">
         <activity
+            android:name=".RecordPEF"
+            android:exported="false" />
+        <activity
             android:name=".ChildDashboardActivity"
             android:exported="false" />
         <activity

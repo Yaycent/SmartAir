@@ -8,7 +8,7 @@
     tools:context=".ChildDashboardActivity">
 
     <Button
-        android:id="@+id/buttonRecordPEF"
+        android:id="@+id/buttonToRecordPEF"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="100dp"

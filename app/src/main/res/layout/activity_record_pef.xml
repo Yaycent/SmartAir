@@ -55,7 +55,7 @@
         app:layout_constraintTop_toBottomOf="@+id/textViewZone" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/buttonRecordPEF"
         android:layout_width="255dp"
         android:layout_height="83dp"
         android:layout_marginStart="80dp"

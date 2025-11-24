@@ -11,8 +11,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAir">
         <activity
-            android:name=".RecordPEFFeature"
             android:name=".EmergencyMedicationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".RecordPEFFeature"
             android:exported="false" />
         <activity
             android:name=".MedicineCabinetActivity"

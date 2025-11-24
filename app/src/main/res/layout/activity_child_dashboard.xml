@@ -10,6 +10,28 @@
     tools:context=".ChildDashboardActivity"
     tools:ignore="ExtraText">
 
+    <Button
+        android:id="@+id/buttonToRecordPEF"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="100dp"
+        android:layout_marginEnd="100dp"
+        android:text="@string/recordPEFButton"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.499" />
+
+    <Button
+        android:id="@+id/buttonBackToParentDashboard2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/goBackButton"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+    
     <TextView
         android:id="@+id/childDashboardTitle"
         android:layout_width="wrap_content"

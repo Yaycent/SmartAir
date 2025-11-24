@@ -14,6 +14,9 @@
             android:name=".EmergencyMedicationActivity"
             android:exported="false" />
         <activity
+            android:name=".RecordPEFFeature"
+            android:exported="false" />
+        <activity
             android:name=".MedicineCabinetActivity"
             android:exported="false" />
         <activity

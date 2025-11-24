@@ -21,13 +21,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.HashMap;
-import java.util.Map;
+import static com.example.smartair.Constants.*;
 
 public class MainActivity extends AppCompatActivity {
-
     private static final String TAG = "MainActivity";
     private FirebaseAuth mAuth;
 
@@ -48,8 +45,6 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        /*
-        Check whether the user is logged, as we don't have to logout botton yet, it will not be active:)
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
         if (currentUser != null) {
@@ -57,16 +52,15 @@ public class MainActivity extends AppCompatActivity {
             navigateToDashboard(currentUser);
             return;
         }
-        */
-
 
         // UI elements
         editTextEmail = findViewById(R.id.editTextEmail);
         editTextPassword = findViewById(R.id.editTextPassword);
         Button buttonLogin = findViewById(R.id.buttonLogin);
         TextView btnGoToRegister = findViewById(R.id.btnGoToRegister);
+        TextView btnForgotPassword = findViewById(R.id.btnForgotPassword);
 
-        //login button
+        // login
         buttonLogin.setOnClickListener(v -> {
             signInUser();
         });
@@ -77,9 +71,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        TextView btnForgotPassword = findViewById(R.id.btnForgotPassword);
-
-
+        // Forget password
         btnForgotPassword.setOnClickListener(v -> {
             String email = editTextEmail.getText().toString().trim();
 
@@ -138,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(MainActivity.this, ParentDashboardActivity.class);
 
         // pass parent id
-        intent.putExtra("PARENT_UID", user.getUid());
+        intent.putExtra(PARENT_UID, user.getUid());
 
         startActivity(intent);
         finish(); // close MainActivity

@@ -4,7 +4,7 @@ import java.util.List;
 
 public class SymptomLog {
 
-    private String childId;
+    private String childUid;
     private long timestamp;
     private String author;
 
@@ -16,14 +16,14 @@ public class SymptomLog {
 
     public SymptomLog() {}
 
-    public SymptomLog(String childId,
+    public SymptomLog(String childUid,
                       long timestamp,
                       String author,
                       boolean nightWaking,
                       boolean activityLimit,
                       boolean coughWheeze,
                       List<String> triggers) {
-        this.childId = childId;
+        this.childUid = childUid;
         this.timestamp = timestamp;
         this.author = author;
         this.nightWaking = nightWaking;
@@ -34,11 +34,11 @@ public class SymptomLog {
 
     // Getters and Setters
     public String getChildId() {
-        return childId;
+        return childUid;
     }
 
-    public void setChildId(String childId) {
-        this.childId = childId;
+    public void setChildId(String childUid) {
+        this.childUid = childUid;
     }
 
     public long getTimestamp() {

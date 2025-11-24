@@ -7,8 +7,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import android.widget.ImageButton;
-import android.view.View;
-
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -25,12 +23,14 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.example.smartair.Constants.*;
 
 public class AddChildActivity extends AppCompatActivity {
-
     private static final String TAG = "AddChildActivity";
     private FirebaseFirestore db;
-    private String parentId; // to store the parent UID received from parent dash board
+    private String parentUid;
+
+    // UI Variables
     private EditText editTextChildName;
     private EditText editTextChildDOB;
     private EditText editTextChildPB;
@@ -40,67 +40,57 @@ public class AddChildActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_child);
-
-        ImageButton buttonBack = findViewById(R.id.buttonBack);
-        buttonBack.setOnClickListener(v -> finish());
-
-
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // Initialize Firebase Auth
         db = FirebaseFirestore.getInstance();
 
         // get the parentId from the Intent
         Intent intent = getIntent();
-        parentId = intent.getStringExtra("PARENT_UID");
+        parentUid = intent.getStringExtra(PARENT_UID);
 
-        if (parentId == null) {
+        if (parentUid == null) {
             Log.e(TAG, "ERROR: Parent UID is missing! Cannot save child data.");
             Toast.makeText(this, "Parent information has been lost and cannot be saved.", Toast.LENGTH_LONG).show();
             finish();
+            return;
         }
 
         // UI elements
         editTextChildName = findViewById(R.id.editTextChildName);
         editTextChildDOB = findViewById(R.id.editTextChildDOB);
         editTextChildPB = findViewById(R.id.editTextChildPB);
+
         Button buttonSaveChild = findViewById(R.id.buttonSaveChild);
         Button buttonBackToParentDashboard = findViewById(R.id.buttonBackToParentDashboard1);
+        ImageButton buttonBack = findViewById(R.id.buttonBack);
 
         // Set up button click event listener
         buttonSaveChild.setOnClickListener(v -> saveChildData());
-        buttonBackToParentDashboard.setOnClickListener(v->{
-            Intent backToParentDashboardIntent = new Intent(AddChildActivity.this, ParentDashboardActivity.class);
-            backToParentDashboardIntent.putExtra("PARENT_UID", parentId);
-            startActivity(backToParentDashboardIntent);
-        });
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        finish();
-        return true;
+        buttonBackToParentDashboard.setOnClickListener(v -> finish());
+        buttonBack.setOnClickListener(v -> finish());
     }
 
     private void saveChildData() {
         String childName = editTextChildName.getText().toString().trim();
         String childDOB = editTextChildDOB.getText().toString().trim();
-        String PB = editTextChildPB.getText().toString().trim();
-        double childPB = Double.parseDouble(PB);
+        String pbString = editTextChildPB.getText().toString().trim();
 
         // Basic Input Validation
-        if (childName.isEmpty() || childDOB.isEmpty() || PB.isEmpty()) {
+        if (childName.isEmpty() || childDOB.isEmpty() || pbString.isEmpty()) {
             Toast.makeText(this, "Please enter your child's information.", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        double childPB;
         // Ensure parentId exists
-        if (parentId == null) {
-            Toast.makeText(this, "Error: Unable to retrieve parent ID.", Toast.LENGTH_LONG).show();
+        try {
+            childPB = Double.parseDouble(pbString);
+        } catch (NumberFormatException e) {
+            editTextChildPB.setError("Invalid number");
             return;
         }
 
@@ -110,7 +100,7 @@ public class AddChildActivity extends AppCompatActivity {
         childData.put("childDOB", childDOB);
         childData.put("childPB", childPB);
         // *** Most important key fields ***
-        childData.put("parentId", parentId);
+        childData.put("parentId", parentUid);
 
         // Call the Firestore API to create a new document in the “children” collection.
         db.collection("children")
@@ -124,12 +114,9 @@ public class AddChildActivity extends AppCompatActivity {
                         finish();
                     }
                 })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error adding child document", e);
-                        Toast.makeText(AddChildActivity.this, "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    }
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error adding child", e);
+                    Toast.makeText(AddChildActivity.this, "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
 }

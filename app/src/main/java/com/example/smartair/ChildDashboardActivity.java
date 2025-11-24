@@ -15,12 +15,18 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import static com.example.smartair.Constants.*;
 
 public class ChildDashboardActivity extends AppCompatActivity {  
     private static final String TAG = "ChildDashboardActivity";
+
+    // Control Variables
     private Button buttonRescue, buttonController, buttonCheckin;
+
+    // Data Variables
     private String childName;
-    private String childId;
     private String childUid;
     private String parentUid;
 
@@ -35,105 +41,86 @@ public class ChildDashboardActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Uniformly get Intent
+        // Get Intent
         Intent intent = getIntent();
-        childUid = intent.getStringExtra("CHILD_UID");
-        childId = intent.getStringExtra("CHILD_ID");
-        parentUid = intent.getStringExtra("PARENT_UID");
-        String childName = intent.getStringExtra("CHILD_NAME");
+        childUid = intent.getStringExtra(CHILD_UID);
+        parentUid = intent.getStringExtra(PARENT_UID);
+        childName = intent.getStringExtra(CHILD_NAME);
 
 
+        if (childUid != null) {
+            Log.d(TAG, "Logged in Child UID: " + childUid);
+        } else {
+            Log.e(TAG, "Error: CHILD_UID not received!");
+            Toast.makeText(this, "Error: Child data missing", Toast.LENGTH_SHORT).show();
+        }
+
+        if (parentUid == null) {
+            Log.w(TAG, "Warning: PARENT_UID missing from Intent, trying FirebaseAuth...");
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            // Try to get it from the currently logged-in user as a backup
+            if (currentUser != null) {
+                parentUid = currentUser.getUid();
+            }
+        }
+        Log.d(TAG, "Parent UID: " + parentUid);
+
+        // All Buttons
+        initButtons();
+
+        // Hi, name
+        TextView hiText = findViewById(R.id.tvHiChild);
+        if (childName != null && hiText != null) {
+            hiText.setText("Hi, " + childName);
+        }
+    }
+
+    private void initButtons() {
+        // --- PEF ---
         Button buttonToRecordPEF = findViewById(R.id.buttonToRecordPEF);
-        Button buttonBackToParentDashboard = findViewById(R.id.buttonBackToParentDashboard2);
-
-        // ChildDashboard -> RecordPEFFeature
-        // pass childId and childName
         buttonToRecordPEF.setOnClickListener(v -> {
-            Intent childInfoIntent = new Intent(ChildDashboardActivity.this, RecordPEFFeature.class);
-            childInfoIntent.putExtra("CHILD_ID", childId);
-            childInfoIntent.putExtra("CHILD_NAME", childName);
-            startActivity(childInfoIntent);
+            Intent intent = new Intent(ChildDashboardActivity.this, RecordPEFFeature.class);
+            intent.putExtra(CHILD_UID, childUid);
+            intent.putExtra(CHILD_NAME, childName);
+            startActivity(intent);
         });
-        
+
+        // --- Rescue ---
+        buttonRescue = findViewById(R.id.buttonRescue);
+        buttonRescue.setOnClickListener(view -> openEmergencyMedicationScreen());
+
+        // --- Controller ---
+        buttonController = findViewById(R.id.buttonController);
+        buttonController.setOnClickListener(view -> {
+            Toast.makeText(this, "Controller clicked", Toast.LENGTH_SHORT).show();
+        });
+
+        // --- Check-in ---
         buttonCheckin = findViewById(R.id.buttonCheckin);
         buttonCheckin.setOnClickListener(v -> {
-
-            Toast.makeText(this, "Daily Check-in clicked!", Toast.LENGTH_SHORT).show();
-
             if (childUid == null) {
-                Toast.makeText(this, "Error: childUid is null!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Error: Child UID is missing!", Toast.LENGTH_SHORT).show();
                 return;
             }
-
-            Intent checkInIntent = new Intent(ChildDashboardActivity.this, DailyCheckInActivity.class);
-
-
-            checkInIntent.putExtra("CHILD_UID", childUid);
-            checkInIntent.putExtra("PARENT_UID", parentUid);
-
-            startActivity(checkInIntent);
+            Intent intent = new Intent(ChildDashboardActivity.this, DailyCheckInActivity.class);
+            intent.putExtra(CHILD_UID, childUid);
+            intent.putExtra(PARENT_UID, parentUid);
+            startActivity(intent);
         });
 
+        // --- Back ---
+        Button buttonBackToParentDashboard = findViewById(R.id.buttonBackToParentDashboard2);
         buttonBackToParentDashboard.setOnClickListener(v -> {
-            Intent backToParentDashboardIntent = new Intent(ChildDashboardActivity.this, ParentDashboardActivity.class);
-            backToParentDashboardIntent.putExtra("PARENT_UID", parentUid);
-            startActivity(backToParentDashboardIntent);
-
-            if (childUid != null) {
-                Log.d(TAG, "Logged in Child UID: " + childUid);
-            } else {
-                Log.e(TAG, "Error: CHILD_UID not received!");
-            }
-
-            if (parentUid == null) {
-                Log.w(TAG, "Warning: PARENT_UID missing from Intent, trying FirebaseAuth...");
-                // Try to get it from the currently logged-in user as a backup
-                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-                    parentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                }
-            }
-            Log.d(TAG, "Parent UID: " + parentUid);
-
-            // Hi, name
-            TextView hiText = findViewById(R.id.tvHiChild);
-            if (childName != null && hiText != null) {
-                hiText.setText("Hi, " + childName);
-            }
-
-            // Rescue button
-            buttonRescue = findViewById(R.id.buttonRescue);
-            buttonRescue.setOnClickListener(view -> {
-                openEmergencyMedicationScreen();
-            });
-
-            // Controller button
-            buttonController = findViewById(R.id.buttonController);
-            buttonController.setOnClickListener(view -> {
-                Toast.makeText(this, "Controller clicked", Toast.LENGTH_SHORT).show();
-            });
-
-            // Back to Parent Dashboard
-            TextView tvBackToParent = findViewById(R.id.tvBackToParent);
-            tvBackToParent.setOnClickListener(view -> {
-                Intent backintent = new Intent(ChildDashboardActivity.this, ParentDashboardActivity.class);
-                backintent.putExtra("PARENT_UID", parentUid);
-                startActivity(backintent);
-                finish();
-            });
-
+            finish();
         });
-
-
-    };
-    /**
-     * Opens EmergencyMedicationActivity and passes
-     * the medication type + child UID.
-     */
+    }
     private void openEmergencyMedicationScreen() {
+        if (childUid == null) return;
+
         Intent intent = new Intent(ChildDashboardActivity.this, EmergencyMedicationActivity.class);
-        intent.putExtra("MED_TYPE", "Rescue");
-        intent.putExtra("CHILD_UID", childUid);
-        Log.d(TAG, "Child selected: " + "Rescue");
+        intent.putExtra(MED_TYPE, "Rescue");
+        intent.putExtra(CHILD_UID, childUid);
+        Log.d(TAG, "Opening Rescue for UID: " + childUid);
         startActivity(intent);
     }
 

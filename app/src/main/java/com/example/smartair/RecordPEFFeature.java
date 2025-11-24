@@ -20,12 +20,16 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.example.smartair.Constants.*;
+
 public class RecordPEFFeature extends AppCompatActivity {
     private static final String TAG = "RecordPEFFeature";
+
     private FirebaseFirestore db;
     private String childName;
-    private String childId;
+    private String childUid;
     private Double personalBest;
+
     private EditText editTextChildPEF;
     private EditText editTextPEFTag;
     private TextView textViewZone;
@@ -46,17 +50,19 @@ public class RecordPEFFeature extends AppCompatActivity {
 
         // retrieve childId and childName from ChildDashboardActivity
         Intent intent = getIntent();
-        childId = intent.getStringExtra("CHILD_ID");
-        childName = intent.getStringExtra("CHILD_NAME");
+        childUid = intent.getStringExtra(CHILD_UID);
+        childName = intent.getStringExtra(CHILD_NAME);
 
         // checking childName and childId
-        if (childName == null || childId == null) {
+        if (childName == null || childUid == null) {
             Log.e(TAG, "Failed to retrieve child's name or child document id.");
             Toast.makeText(this, "Error retrieving child's name or Id. Please try again.", Toast.LENGTH_SHORT).show();
+            finish();
             return;
         }
+
         // find child's PB
-        retrieveChildPB(childId);
+        retrieveChildPB(childUid);
 
         // connect UI elements
         editTextChildPEF = findViewById(R.id.editTextChildPEF);
@@ -70,12 +76,7 @@ public class RecordPEFFeature extends AppCompatActivity {
         textViewZone.setTextColor(ContextCompat.getColor(this, android.R.color.black));
 
         buttonRecordPEF.setOnClickListener(v -> recordChildPEF());
-        buttonBackToChildDashboard.setOnClickListener(v->{
-            Intent backToChilDashboardIntent = new Intent(RecordPEFFeature.this, ChildDashboardActivity.class);
-            backToChilDashboardIntent.putExtra("CHILD_NAME", childName);
-            backToChilDashboardIntent.putExtra("CHILD_ID", childId);
-            startActivity(backToChilDashboardIntent);
-        });
+        buttonBackToChildDashboard.setOnClickListener(v -> finish());
     }
 
     private void retrieveChildPB(String childId) {
@@ -90,9 +91,9 @@ public class RecordPEFFeature extends AppCompatActivity {
                         if (pbObject instanceof Number) {
                             PB = ((Number) pbObject).doubleValue();
                         }
-                        if (PB==null){
+                        if (PB == null || PB == 0){
                             Toast.makeText(this, "Personal Best is not set for this child.", Toast.LENGTH_SHORT).show();
-                            finish();
+                            personalBest = null;
                         }
                         else {
                             personalBest = PB;
@@ -173,30 +174,28 @@ public class RecordPEFFeature extends AppCompatActivity {
     }
 
     private void savePEFLog(double PEFValue, String zone, String zoneTag) {
-        if (childName == null || childId == null)    {
-            Toast.makeText(this, "Child name or ID is missing. Cannot save data.", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (childUid == null) return;
 
         // create a document
-        Map<String, Object> childData = new HashMap<>();
-        childData.put("childId", childId);
-        childData.put("timeStamp", System.currentTimeMillis());
-        childData.put("value", PEFValue);
-        childData.put("zone", zone);
-        childData.put("tag", zoneTag);
+        Map<String, Object> logData = new HashMap<>();
 
-        // call the Firestore API to create a new document in the “pefLogs” collection.
-        db.collection("children")
-                .document(childId)
-                .collection("pefLogs")
-                .add(childData)
+        logData.put("childId", childUid);
+        logData.put("childName", childName);
+        logData.put("timeStamp", System.currentTimeMillis());
+        logData.put("value", PEFValue);
+        logData.put("zone", zone);
+        logData.put("tag", zoneTag);
+
+        // Save to the root directory pefLogs
+        db.collection("pefLogs")
+                .add(logData)
                 .addOnSuccessListener(documentReference -> {
-                    Log.d(TAG, "Child document added with ID: " + documentReference.getId());
-                    Toast.makeText(RecordPEFFeature.this, "Child information saved successfully!", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "PEF Log saved: " + documentReference.getId());
+                    Toast.makeText(RecordPEFFeature.this, "Saved successfully!", Toast.LENGTH_SHORT).show();
+                    finish();
                 })
                 .addOnFailureListener(e -> {
-                    Log.w(TAG, "Error adding child document", e);
+                    Log.e(TAG, "Error saving PEF", e);
                     Toast.makeText(RecordPEFFeature.this, "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }

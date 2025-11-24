@@ -7,12 +7,18 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.example.smartair.Constants.*;
 
 public class DailyCheckInActivity extends AppCompatActivity {
 
@@ -33,11 +39,17 @@ public class DailyCheckInActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_daily_check_in);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         // Get childUid / parentUid from Intent
-        childUid = getIntent().getStringExtra("CHILD_UID");
-        parentUid = getIntent().getStringExtra("PARENT_UID");
+        childUid = getIntent().getStringExtra(CHILD_UID);
+        parentUid = getIntent().getStringExtra(PARENT_UID);
 
         if (childUid == null) {
             Toast.makeText(this, "Error: child UID missing", Toast.LENGTH_SHORT).show();

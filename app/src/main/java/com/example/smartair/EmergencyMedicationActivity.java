@@ -21,16 +21,18 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.example.smartair.Constants.*;
 
 public class EmergencyMedicationActivity extends AppCompatActivity {
-
     private static final String TAG = "EmergencyMedication";
+
     private Spinner spinnerPreFeeling, spinnerPostFeeling;
     private EditText editDoseCount;
     private Button buttonSubmit;
-    private String childUid;    // from ChildDashboardActivity
-    private FirebaseFirestore db;
 
+    private String childUid;    // from ChildDashboardActivity
+
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +46,14 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
         });
 
         Intent intent = getIntent();
-        childUid = intent.getStringExtra("CHILD_UID");
+        childUid = intent.getStringExtra(CHILD_UID);
+
+        if (childUid == null) {
+            Log.e(TAG, "Error: CHILD_UID missing!");
+            Toast.makeText(this, "Child information missing.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         db = FirebaseFirestore.getInstance();
 
@@ -99,11 +108,17 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
             return;
         }
 
-        int doseCount = Integer.parseInt(doseStr);
+        int doseCount;
+        try {
+            doseCount = Integer.parseInt(doseStr);
+        } catch (NumberFormatException e) {
+            editDoseCount.setError("Invalid number");
+            return;
+        }
 
         // Build a log object to upload to Firestore
         Map<String, Object> log = new HashMap<>();
-        log.put("childId", childUid);
+        log.put("childUid", childUid);
         log.put("timestamp", FieldValue.serverTimestamp());
         log.put("type", "Rescue");
         log.put("preFeeling", preFeeling);
@@ -116,8 +131,11 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
                 .addOnSuccessListener(ref -> {
                     Toast.makeText(this, "Medication log submitted", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Log added: " + ref.getId());
+                    finish();
                 })
-                .addOnFailureListener(e ->
-                        Log.e(TAG, "Error adding log", e));
+                .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error adding log", e);
+                        Toast.makeText(this, "Failed to save: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 }

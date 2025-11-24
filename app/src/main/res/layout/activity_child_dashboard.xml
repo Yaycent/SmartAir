@@ -73,6 +73,17 @@
         app:layout_constraintTop_toBottomOf="@+id/buttonRescue"
         app:layout_constraintVertical_bias="0.045" />
 
+    <Button
+        android:id="@+id/buttonCheckin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Daily check-in"
+        android:layout_marginTop="32dp"
+        app:layout_constraintTop_toBottomOf="@id/buttonController"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
 
 
     <!-- Back to Parent Dashboard -->
@@ -101,5 +112,9 @@
         style="@style/SmartAir.H1"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.constraintlayout.widget.Guideline android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

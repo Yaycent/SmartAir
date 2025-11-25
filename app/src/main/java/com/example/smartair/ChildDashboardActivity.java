@@ -90,9 +90,9 @@ public class ChildDashboardActivity extends AppCompatActivity {
         buttonRescue.setOnClickListener(view -> openEmergencyMedicationScreen());
 
         // --- Controller ---
-        buttonController = findViewById(R.id.buttonController);
-        buttonController.setOnClickListener(view -> {
-            Toast.makeText(this, "Controller clicked", Toast.LENGTH_SHORT).show();
+        Button btnCheck = findViewById(R.id.btnCheck);
+        btnCheck.setOnClickListener(view -> {
+            Toast.makeText(this, "Check clicked - Controller logic", Toast.LENGTH_SHORT).show();
         });
 
         // --- Check-in ---

@@ -74,7 +74,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/cardMedicationInventory"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginTop="24dp"
         android:background="@android:color/darker_gray"
         android:padding="16dp"

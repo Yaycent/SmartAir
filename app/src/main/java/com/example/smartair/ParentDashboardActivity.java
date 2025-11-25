@@ -90,6 +90,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        if (parentUid == null && FirebaseAuth.getInstance().getCurrentUser() != null) {
+            parentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        }
+
+        loadMedicinesForParent();
         loadChildrenFromFirestore();
     }
     private void initViews() {
@@ -214,7 +220,10 @@ public class ParentDashboardActivity extends AppCompatActivity {
      * Loads the list of medicines in real-time from Firebase.
      */
     private void loadMedicinesForParent() {
-        if (parentUid == null) return;
+        if (parentUid == null) {
+            Log.e(TAG, "Cannot load medicine: parentUid STILL NULL.");
+            return;
+        }
 
         db.collection("medicine")
                 .whereEqualTo("parentUid", parentUid)

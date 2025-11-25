@@ -1,13 +1,9 @@
 package com.example.smartair;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,157 +11,110 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.google.firebase.firestore.FieldValue;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.ArrayList;
 
 public class MedicineCabinetActivity extends AppCompatActivity {
-    private static final String TAG = "MedicineCabinet";
 
-    private EditText editPurchaseDate, editTotalDose, editExpiryDate;
-    private TextView textRemainingDose;
     private FirebaseFirestore db;
-    private String parentUid;
-
+    private RecyclerView recyclerView;
+    private MedicineAdapter adapter;
+    private ArrayList<MedicineItem> list;
+    private TextView textWarning;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_medicine_cabinet);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        Intent intent = getIntent();
-        parentUid = intent.getStringExtra("PARENT_UID");
-
-        if (parentUid == null) {
-            Log.e(TAG, "Error: PARENT_UID not received!");
-        }
-
-        // Initialize Firestore
         db = FirebaseFirestore.getInstance();
 
-        // Bind UI
-        editPurchaseDate = findViewById(R.id.editPurchaseDate);
-        editTotalDose = findViewById(R.id.editTotalDose);
-        editExpiryDate = findViewById(R.id.editExpiryDate);
-        textRemainingDose = findViewById(R.id.textRemainingDose);
-        Button buttonSave = findViewById(R.id.buttonSaveMedicine);
+        // RecyclerView setup
+        recyclerView = findViewById(R.id.recyclerMedicine);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Save button
-        buttonSave.setOnClickListener(v -> saveMedicineInfo());
+        list = new ArrayList<>();
+        adapter = new MedicineAdapter(this,list);
+        recyclerView.setAdapter(adapter);
 
-        // Start listening for child's rescue usage
-        listenForMedicationLogs();
+        textWarning = findViewById(R.id.textWarning);
+
+        // Add medicine button
+        Button btnAdd = findViewById(R.id.buttonAddMedicine);
+        btnAdd.setOnClickListener(v ->
+                startActivity(new Intent(this, AddMedicineActivity.class))
+        );
+
+        // Load from Firestore
+        loadMedicines();
+
+        // Listener
+        new RescueUsageManager().startListening();
     }
-    /**
-     * Saves medicine inventory info entered by the parent.
-     * Includes validation, remaining dose calculation,
-     * expiry check, low stock alert, and writing to Firestore.
-     */
-    @SuppressLint("SetTextI18n")
-    private void saveMedicineInfo(){
-        String purchaseDate = editPurchaseDate.getText().toString().trim();
-        String totalDoseStr = editTotalDose.getText().toString().trim();
-        String expiryDate = editExpiryDate.getText().toString().trim();
 
-        // Validate empty fields
-        if (purchaseDate.isEmpty()||totalDoseStr.isEmpty()||expiryDate.isEmpty()){
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Parse total dose
-        int totalDose;
-        try {
-            totalDose = Integer.parseInt(totalDoseStr);
-        } catch (Exception e) {
-            Toast.makeText(this, "Total dose must be a number", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Initial remaining dose
-        int remainingDose = totalDose;
-
-        textRemainingDose.setText("Remaining: " + remainingDose + "/" + totalDose);
-
-        // Expiry check
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        sdf.setLenient(false);
-        try {
-            Date exp = sdf.parse(expiryDate);
-            if (exp!=null && exp.before(new Date())) {
-                Toast.makeText(this, "!Medicine has expired!", Toast.LENGTH_LONG).show();
-            }
-        } catch (Exception e) {
-            Toast.makeText(this, "Invalid expiry date format (YYYY-MM-DD)", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Low stock alert
-        if (remainingDose / (double) totalDose <= 0.2){
-            Toast.makeText(this, "!Medicine running low (<=20%)!", Toast.LENGTH_LONG).show();
-        }
-
-        // Firestore document
-        Map<String, Object> med = new HashMap<>();
-        med.put("purchaseDate", purchaseDate);
-        med.put("totalDose", totalDose);
-        med.put("remainingDose", remainingDose);
-        med.put("expiryDate", expiryDate);
-        med.put("parentUid", parentUid); // link to the parent
-
-        // Upload
+    private void loadMedicines() {
         db.collection("medicine")
-                .add(med)
-                .addOnSuccessListener(doc -> Toast.makeText(this, "Medicine saved!", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(this, "Error saving data", Toast.LENGTH_SHORT).show());
-    }
-    /**
-     * Listens for new medication logs from the child
-     * in the Firestore. If a new Rescue log is detected,
-     * inventory will be updated.
-     */
-    private void listenForMedicationLogs(){
-        db.collection("medicationLogs")
-                .addSnapshotListener((snap,error) ->{
-                    if (error!=null) {
-                        Log.e(TAG, "Listen failed.", error);
-                        return;
-                    }
-                    if (snap==null || snap.isEmpty()) return;
-                    snap.getDocumentChanges().forEach(change -> {
-                        String medType = change.getDocument().getString("type");
-                        if ("Rescue".equals(medType)){
-                            Log.d(TAG, "Rescue detected -> decrease inventory");
-                            decreaseRescueInventory();
+                .addSnapshotListener((snap, e) -> {
+                    if (snap == null) return;
+
+                    list.clear();
+                    boolean hasLowStock = false;
+                    boolean hasExpired = false;
+
+                    for (var doc : snap.getDocuments()) {
+                        MedicineItem item = doc.toObject(MedicineItem.class);
+                        // ensure Firestore doc ID is stored
+                        if (item != null) {
+                            item.setId(doc.getId());
+                            list.add(item);
+
+                            // low stock
+                            if (item.getPercentage() <= 20) {
+                                hasLowStock = true;
+                            }
+
+                            // expire
+                            String exp = item.getExpiryDate();
+                            if (exp != null && !exp.isEmpty()){
+                                try {
+                                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                                    Date expDate = sdf.parse(exp);
+
+                                    if (expDate != null && expDate.before(new Date())) {
+                                        hasExpired = true;
+                                    }
+                                } catch (Exception ignored) {
+                                }
+                            }
                         }
-                    });
+                    }
+
+                    if (hasExpired) {
+                        textWarning.setText("!Some medicines have expired!");
+                        textWarning.setTextColor(0xFFFF4444);  // red
+                    }
+                    else if (hasLowStock) {
+                        textWarning.setText("!Some medicines are low (≤20%)!");
+                        textWarning.setTextColor(0xFFFFBB33);  // orange
+                    }
+                    else {
+                        textWarning.setText("");
+                    }
+
+                    adapter.notifyDataSetChanged();
                 });
-    }
-    /**
-     * Decreases the remaining dose of the Rescue
-     * medication by 1. This is triggered when the child
-     * submits a Rescue log.
-     */
-    private void decreaseRescueInventory(){
-        db.collection("parentInventory")
-                .document("rescue")
-                .update("remainingDose", FieldValue.increment(-1))
-                .addOnSuccessListener(unused ->
-                        Log.d(TAG, "Rescue inventory decreased by 1")
-                )
-                .addOnFailureListener(e ->
-                        Log.e(TAG, "Failed to decrease rescue inventory", e)
-                );
     }
 }

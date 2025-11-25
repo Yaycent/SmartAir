@@ -34,6 +34,16 @@
     <string name="remaining_not_calculated">Remaining: Not calculated</string>
     <string name="save_medicine">Save Medicine Info</string>
 
+    <string name="add_medicine">Add Medicine</string>
+    <string name="medicine_name">Medicine Name</string>
+    <string name="medicine_name_hint">Medicine Name</string>
+    <string name="_75">75%</string>
+    <string name="button_add_medicine">Add Medicine</string>
+
+    <string name="dose_remaining_format">%1$d / %2$d remaining</string>
+    <string name="percent_format">%1$d%%</string>
+
+
     <string name="rescue_med">Rescue Medication</string>
     <string name="button_controller">Controller Medication</string>
     <string name="emergency_medication">Emergency Medication</string>

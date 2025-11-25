@@ -61,8 +61,6 @@ public class MedicineCabinetActivity extends AppCompatActivity {
         // Load from Firestore
         loadMedicines();
 
-        // Listener
-        new RescueUsageManager().startListening();
     }
 
     /**

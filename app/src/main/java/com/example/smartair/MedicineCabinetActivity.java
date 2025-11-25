@@ -65,6 +65,9 @@ public class MedicineCabinetActivity extends AppCompatActivity {
         new RescueUsageManager().startListening();
     }
 
+    /**
+     * Loads the list of medicines in real-time from Firebase.
+     */
     private void loadMedicines() {
         db.collection("medicine")
                 .addSnapshotListener((snap, e) -> {

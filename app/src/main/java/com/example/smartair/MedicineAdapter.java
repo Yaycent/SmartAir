@@ -20,6 +20,15 @@ public class MedicineAdapter extends RecyclerView.Adapter<MedicineAdapter.Medici
         this.medicineList = medicineList;
     }
 
+    /**
+     * Called when RecyclerView needs a new ViewHolder.
+     * Inflates the item_medicine.xml layout and returns its ViewHolder.
+     *
+     * @param parent   The ViewGroup into which the new View will be added after it is bound to
+     *                 an adapter position.
+     * @param viewType The view type of the new View.
+     * @return A new MedicineViewHolder instance.
+     */
     @NonNull
     @Override
     public MedicineViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -27,6 +36,12 @@ public class MedicineAdapter extends RecyclerView.Adapter<MedicineAdapter.Medici
         return new MedicineViewHolder(view);
     }
 
+    /**
+     * Binds a single item in the RecyclerView to its UI elements.
+     *
+     * @param holder The ViewHolder that holds references to the item's views.
+     * @param position The position of this item in the list.
+     */
     @Override
     public void onBindViewHolder(@NonNull MedicineViewHolder holder, int position) {
         MedicineItem item = medicineList.get(position);
@@ -45,11 +60,17 @@ public class MedicineAdapter extends RecyclerView.Adapter<MedicineAdapter.Medici
         }
     }
 
+    /**
+     * @return how many items RecyclerView should display
+     */
     @Override
     public int getItemCount() {
         return medicineList.size();
     }
 
+    /**
+     * Holds all UI references for each single medicine item row.
+     */
     public static class MedicineViewHolder extends RecyclerView.ViewHolder {
         TextView textName, textPercentage;
 

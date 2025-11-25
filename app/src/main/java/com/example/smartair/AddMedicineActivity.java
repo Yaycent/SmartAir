@@ -42,6 +42,10 @@ public class AddMedicineActivity extends AppCompatActivity {
         Button buttonSave = findViewById(R.id.buttonSaveMedicine);
         buttonSave.setOnClickListener(v -> saveMedicineInfo());
     }
+
+    /**
+     * Saves a new medicine entry into Firestore.
+     */
     private void saveMedicineInfo() {
         String name = editName.getText().toString().trim();
         String purchase = editPurchaseDate.getText().toString().trim();

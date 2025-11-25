@@ -13,7 +13,11 @@ public class RescueUsageManager {
         this.db = FirebaseFirestore.getInstance();
     }
 
-    // Start listening for rescue medication usage
+    /**
+     * Listens for new medication logs from the child
+     * in the Firestore. If a new Rescue log is detected,
+     * inventory will be updated.
+     */
     public void startListening() {
         db.collection("medicationLogs")
                 .addSnapshotListener((snap, e) -> {
@@ -31,6 +35,11 @@ public class RescueUsageManager {
                 });
     }
 
+    /**
+     * Decreases the remaining dose of the Rescue
+     * medication by 1. This is triggered when the child
+     * submits a Rescue log.
+     */
     private void decreaseDose() {
         db.collection("medicine")
                 .limit(1)

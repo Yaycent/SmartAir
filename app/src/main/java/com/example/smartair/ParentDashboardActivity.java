@@ -20,8 +20,12 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import static com.example.smartair.Constants.*;
 
@@ -45,6 +49,9 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private String parentUid;
 
     private int savedChildIndex = 0;
+    private RecyclerView recyclerView;
+    private MedicineAdapter adapter;
+    private ArrayList<MedicineItem> medicineList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +83,9 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
         // All buttons
         initViews();
+
+        // realtime load medicines for this parent
+        loadMedicinesForParent();
     }
     @Override
     protected void onResume() {
@@ -87,7 +97,8 @@ public class ParentDashboardActivity extends AppCompatActivity {
         buttonAddChild = findViewById(R.id.buttonAddChild);
         tvGoToChildDashboard = findViewById(R.id.tvGoToChildDashboard);
         tvLogout = findViewById(R.id.tvLogout);
-        buttonMedicineCabinet = findViewById(R.id.buttonOpenMedicineCabinet);
+        recyclerView = findViewById(R.id.recyclerMedicineInventory);
+        Button buttonAddMedicine = findViewById(R.id.buttonAddMedicine);
 
         // Spinner
         spinnerChild.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -136,12 +147,22 @@ public class ParentDashboardActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // --- Medicine Cabinet ---
-        buttonMedicineCabinet.setOnClickListener(v -> {
-            Intent intent = new Intent(ParentDashboardActivity.this, MedicineCabinetActivity.class);
-            intent.putExtra(PARENT_UID, parentUid); // 使用常量
-            startActivity(intent);
+        // Medicine Inventory
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        medicineList = new ArrayList<>();
+        adapter = new MedicineAdapter(this, medicineList);
+        recyclerView.setAdapter(adapter);
+
+        // "Add medicine" button
+        buttonAddMedicine.setOnClickListener(v -> {
+            Intent addMedIntent =
+                    new Intent(ParentDashboardActivity.this, AddMedicineActivity.class);
+            addMedIntent.putExtra(PARENT_UID, parentUid);
+            startActivity(addMedIntent);
         });
+
+
     }
 
     private void loadChildrenFromFirestore() {
@@ -189,4 +210,30 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Loads the list of medicines in real-time from Firebase.
+     */
+    private void loadMedicinesForParent() {
+        if (parentUid == null) return;
+
+        db.collection("medicine")
+                .whereEqualTo("parentUid", parentUid)
+                .addSnapshotListener((snap, e) -> {
+                    if (e != null) {
+                        Log.e(TAG, "Listen failed: ", e);
+                        return;
+                    }
+                    if (snap == null) return;
+
+                    medicineList.clear();
+                    snap.getDocuments().forEach(doc -> {
+                        MedicineItem item = doc.toObject(MedicineItem.class);
+                        if (item != null) {
+                            item.setId(doc.getId());
+                            medicineList.add(item);
+                        }
+                    });
+                    adapter.notifyDataSetChanged();
+                });
+    }
 }

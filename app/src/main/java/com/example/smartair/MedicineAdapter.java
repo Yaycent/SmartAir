@@ -2,6 +2,7 @@ package com.example.smartair;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,15 +49,24 @@ public class MedicineAdapter extends RecyclerView.Adapter<MedicineAdapter.Medici
 
         holder.textName.setText(item.getName());
 
-        double percent = item.getPercentage();
-        String percentText = String.format("%.0f%%", percent);
-        holder.textPercentage.setText(percentText);
+        // Dose text: "35/200"
+        String doseText = item.getRemainingDose() + "/" + item.getTotalDose();
+        holder.textDose.setText(doseText);
 
-        // green (>20%), red (≤20%)
-        if (percent <= 20) {
-            holder.textPercentage.setTextColor(Color.RED);
+        // Calculate %
+        double percent = item.getPercentage();
+
+        // Determine Status
+        if (percent <= 0) {
+            holder.textStatus.setText("Empty");
+            setTagColor(holder.textStatus, Color.RED);
+        } else if (percent <= 20) {
+            holder.textStatus.setText("Low");
+            setTagColor(holder.textStatus, Color.RED);
         } else {
-            holder.textPercentage.setTextColor(Color.parseColor("#33691E")); // green
+            holder.textStatus.setText("OK");
+            setTagColor(holder.textStatus, Color.parseColor("#4CAF50")); // green
+
         }
     }
 
@@ -69,16 +79,24 @@ public class MedicineAdapter extends RecyclerView.Adapter<MedicineAdapter.Medici
     }
 
     /**
+     * Set the color of the tag.
+     */
+    private void setTagColor(TextView tag, int color) {
+        GradientDrawable bg = (GradientDrawable) tag.getBackground();
+        bg.setColor(color);
+    }
+
+    /**
      * Holds all UI references for each single medicine item row.
      */
     public static class MedicineViewHolder extends RecyclerView.ViewHolder {
-        TextView textName, textPercentage;
+        TextView textName, textStatus, textDose;
 
         public MedicineViewHolder(@NonNull View itemView) {
             super(itemView);
-
             textName = itemView.findViewById(R.id.textMedicineName);
-            textPercentage = itemView.findViewById(R.id.textPercentage);
+            textStatus = itemView.findViewById(R.id.textStatus);
+            textDose = itemView.findViewById(R.id.textDose);
         }
     }
 }

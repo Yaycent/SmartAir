@@ -43,6 +43,29 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 
+    <Spinner
+        android:id="@+id/spinnerMedType"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/editMedicineName"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <EditText
+        android:id="@+id/editDosePerUse"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:hint="@string/dose_per_use_hint"
+
+        android:autofillHints="quantity"
+        android:inputType="number"
+        android:layout_marginTop="16dp"
+
+        app:layout_constraintTop_toBottomOf="@id/spinnerMedType"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     <EditText
         android:id="@+id/editPurchaseDate"
         android:layout_width="wrap_content"
@@ -62,7 +85,7 @@
 
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/editMedicineName" />
+        app:layout_constraintTop_toBottomOf="@id/editDosePerUse" />
 
     <EditText
         android:id="@+id/editExpiryDate"

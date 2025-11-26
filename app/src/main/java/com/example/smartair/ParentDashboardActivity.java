@@ -86,6 +86,10 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
         // realtime load medicines for this parent
         loadMedicinesForParent();
+
+        // Add listener
+        RescueUsageManager rescueManager = new RescueUsageManager();
+        rescueManager.startListening(parentUid);
     }
     @Override
     protected void onResume() {

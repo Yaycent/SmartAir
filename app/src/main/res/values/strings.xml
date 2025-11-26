@@ -44,6 +44,8 @@
     <string name="dose_remaining_format">%1$d / %2$d remaining</string>
     <string name="percent_format">%1$d%%</string>
 
+    <string name="rescue">Rescue</string>
+
 
     <string name="rescue_med">Rescue Medication</string>
     <string name="button_controller">Controller Medication</string>
@@ -64,5 +66,16 @@
         <item>@string/feeling_worse</item>
     </string-array>
     <string name="submit_log">Submit Log</string>
+    <string name="each_use_1">Each use: 1</string>
+
+    <string name="status_empty">Empty</string>
+    <string name="status_low">Low</string>
+    <string name="status_ok">OK</string>
+    <string name="each_use_format">Each use: %1$d</string>
+    <string name="dose_per_use_hint">Dose per use (Controller only)</string>
+    <string-array name="medicine_type_options">
+        <item>Rescue</item>
+        <item>Controller</item>
+    </string-array>
 
 </resources>

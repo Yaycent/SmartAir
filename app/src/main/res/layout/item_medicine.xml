@@ -12,6 +12,8 @@
         android:layout_height="wrap_content"
         android:text="@string/medicine_name"
         android:textSize="18sp"
+        android:maxLines="1"
+        android:ellipsize="end"
 
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/textStatus"
@@ -25,13 +27,15 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="32dp"
         android:background="@drawable/status_tag_bg"
+
         android:paddingStart="10dp"
         android:paddingTop="4dp"
         android:paddingEnd="10dp"
         android:paddingBottom="4dp"
-        android:text="@string/low_status"
+        android:text=""
         android:textColor="@android:color/white"
         android:textSize="14sp"
+
         app:layout_constraintEnd_toStartOf="@+id/textDose"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -42,7 +46,36 @@
         android:layout_height="wrap_content"
         android:text="@string/remaining_dose"
         android:textSize="15sp"
+
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
+
+    <!-- Medicine Type: Rescue / Controller -->
+    <TextView
+        android:id="@+id/textMedicineType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/rescue"
+        android:textColor="#666666"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textMedicineName" />
+
+
+    <!-- Dose per use (Only for Controller, adapter will hide for Rescue) -->
+    <TextView
+        android:id="@+id/textDosePerUse"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/each_use_1"
+        android:textColor="#666666"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp"
+        android:visibility="gone"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textMedicineType" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

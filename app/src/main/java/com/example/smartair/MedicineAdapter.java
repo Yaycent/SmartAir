@@ -47,24 +47,38 @@ public class MedicineAdapter extends RecyclerView.Adapter<MedicineAdapter.Medici
     public void onBindViewHolder(@NonNull MedicineViewHolder holder, int position) {
         MedicineItem item = medicineList.get(position);
 
+        // Name
         holder.textName.setText(item.getName());
 
-        // Dose text: "35/200"
+        // Type (Rescue / Controller)
+        holder.textType.setText(item.getMedType());
+
+        // Dose text (remaining/total)
         String doseText = item.getRemainingDose() + "/" + item.getTotalDose();
         holder.textDose.setText(doseText);
+
+        // Controller → show “dose per use”
+        if ("Controller".equalsIgnoreCase(item.getMedType())) {
+            holder.textDosePerUse.setVisibility(View.VISIBLE);
+            holder.textDosePerUse.setText(
+                    context.getString(R.string.each_use_format, item.getDosePerUse())
+            );
+        } else {
+            holder.textDosePerUse.setVisibility(View.GONE);
+        }
 
         // Calculate %
         double percent = item.getPercentage();
 
         // Determine Status
         if (percent <= 0) {
-            holder.textStatus.setText("Empty");
+            holder.textStatus.setText(R.string.status_empty);
             setTagColor(holder.textStatus, Color.RED);
         } else if (percent <= 20) {
-            holder.textStatus.setText("Low");
+            holder.textStatus.setText(R.string.status_low);
             setTagColor(holder.textStatus, Color.RED);
         } else {
-            holder.textStatus.setText("OK");
+            holder.textStatus.setText(R.string.status_ok);
             setTagColor(holder.textStatus, Color.parseColor("#4CAF50")); // green
 
         }
@@ -90,13 +104,15 @@ public class MedicineAdapter extends RecyclerView.Adapter<MedicineAdapter.Medici
      * Holds all UI references for each single medicine item row.
      */
     public static class MedicineViewHolder extends RecyclerView.ViewHolder {
-        TextView textName, textStatus, textDose;
+        TextView textName, textType, textDose, textDosePerUse, textStatus;
 
         public MedicineViewHolder(@NonNull View itemView) {
             super(itemView);
             textName = itemView.findViewById(R.id.textMedicineName);
-            textStatus = itemView.findViewById(R.id.textStatus);
+            textType = itemView.findViewById(R.id.textMedicineType);
             textDose = itemView.findViewById(R.id.textDose);
+            textDosePerUse = itemView.findViewById(R.id.textDosePerUse);
+            textStatus = itemView.findViewById(R.id.textStatus);
         }
     }
 }

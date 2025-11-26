@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.util.Log;
-import android.widget.Button;
 import android.widget.Toast;
 import android.widget.TextView;
 
@@ -16,6 +15,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import static com.example.smartair.Constants.*;
 
@@ -115,13 +115,40 @@ public class ChildDashboardActivity extends AppCompatActivity {
         });
     }
     private void openEmergencyMedicationScreen() {
-        if (childUid == null) return;
 
-        Intent intent = new Intent(ChildDashboardActivity.this, EmergencyMedicationActivity.class);
-        intent.putExtra(MED_TYPE, "Rescue");
-        intent.putExtra(CHILD_UID, childUid);
-        Log.d(TAG, "Opening Rescue for UID: " + childUid);
-        startActivity(intent);
+        if (childUid == null || parentUid == null) {
+            Toast.makeText(this, "Missing CHILD_UID or PARENT_UID. ", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("medicine")
+                .whereEqualTo("parentUid", parentUid)
+                .whereEqualTo("medType", "Rescue")
+                .limit(1)
+                .get()
+                .addOnSuccessListener(snap -> {
+                    if (snap.isEmpty()) {
+                        Toast.makeText(this, "No rescue medication found!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // Get the Rescue medicine document ID
+                    String rescueMedId = snap.getDocuments().get(0).getId();
+
+                    // Pass to EmergencyMedicationActivity
+                    Intent intent = new Intent(ChildDashboardActivity.this, EmergencyMedicationActivity.class);
+                    intent.putExtra(CHILD_UID, childUid);
+                    intent.putExtra(PARENT_UID, parentUid);
+                    intent.putExtra(MEDICINE_ID, rescueMedId);
+                    intent.putExtra(MED_TYPE, "Rescue");
+
+                    startActivity(intent);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to load medication info.", Toast.LENGTH_SHORT).show();
+                });
     }
 
 }

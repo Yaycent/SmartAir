@@ -71,11 +71,15 @@
         app:layout_constraintTop_toBottomOf="@+id/editTextChildPEF"
         app:layout_constraintVertical_bias="0.0" />
 
-    <Button
-        android:id="@+id/buttonBackToChildDashboard"
+    <ImageButton
+        android:id="@+id/imageButtonBackRecordPEF"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/goBackButton"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:background="@android:color/transparent"
+        android:contentDescription="Back"
+        android:padding="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_back_white" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

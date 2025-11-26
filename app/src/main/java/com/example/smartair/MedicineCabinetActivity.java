@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,9 +61,13 @@ public class MedicineCabinetActivity extends AppCompatActivity {
         editExpiryDate = findViewById(R.id.editExpiryDate);
         textRemainingDose = findViewById(R.id.textRemainingDose);
         Button buttonSave = findViewById(R.id.buttonSaveMedicine);
+        ImageButton imageButtonBackMedicineCabinet = findViewById(R.id.imageButtonBackMedicineCabinet);
 
         // Save button
         buttonSave.setOnClickListener(v -> saveMedicineInfo());
+
+        // Back button
+        imageButtonBackMedicineCabinet.setOnClickListener(v -> finish());
 
         // Start listening for child's rescue usage
         listenForMedicationLogs();

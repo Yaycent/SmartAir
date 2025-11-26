@@ -24,14 +24,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.793" />
 
-    <Button
-        android:id="@+id/buttonBackToParentDashboard2"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/goBackButton"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-    
     <TextView
         android:id="@+id/childDashboardTitle"
         android:layout_width="wrap_content"
@@ -107,15 +99,15 @@
                 android:id="@+id/btnCheck"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minHeight="0dp"
+                android:backgroundTint="#D9D9D9"
                 android:minWidth="0dp"
+                android:minHeight="0dp"
                 android:paddingHorizontal="24dp"
                 android:paddingVertical="8dp"
                 android:text="Check"
                 android:textAllCaps="false"
                 android:textColor="@android:color/black"
                 android:textSize="16sp"
-                android:backgroundTint="#D9D9D9"
                 app:cornerRadius="20dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -150,6 +142,17 @@
     <androidx.constraintlayout.widget.Guideline
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+
+    <ImageButton
+        android:id="@+id/imageButtonBackChildDashboard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:contentDescription="Back"
+        android:padding="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_back_white" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

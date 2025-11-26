@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 import android.widget.TextView;
 
@@ -21,9 +22,6 @@ import static com.example.smartair.Constants.*;
 
 public class ChildDashboardActivity extends AppCompatActivity {  
     private static final String TAG = "ChildDashboardActivity";
-
-    // Control Variables
-    private Button buttonRescue, buttonController, buttonCheckin;
 
     // Data Variables
     private String childName;
@@ -86,17 +84,18 @@ public class ChildDashboardActivity extends AppCompatActivity {
         });
 
         // --- Rescue ---
-        buttonRescue = findViewById(R.id.buttonRescue);
+        // Control Variables
+        Button buttonRescue = findViewById(R.id.buttonRescue);
         buttonRescue.setOnClickListener(view -> openEmergencyMedicationScreen());
 
         // --- Controller ---
-        Button btnCheck = findViewById(R.id.btnCheck);
-        btnCheck.setOnClickListener(view -> {
-            Toast.makeText(this, "Check clicked - Controller logic", Toast.LENGTH_SHORT).show();
+        Button buttonController = findViewById(R.id.btnCheck);
+        buttonController.setOnClickListener(view -> {
+            Toast.makeText(this, "Controller clicked", Toast.LENGTH_SHORT).show();
         });
 
         // --- Check-in ---
-        buttonCheckin = findViewById(R.id.buttonCheckin);
+        Button buttonCheckin = findViewById(R.id.buttonCheckin);
         buttonCheckin.setOnClickListener(v -> {
             if (childUid == null) {
                 Toast.makeText(this, "Error: Child UID is missing!", Toast.LENGTH_SHORT).show();
@@ -109,10 +108,8 @@ public class ChildDashboardActivity extends AppCompatActivity {
         });
 
         // --- Back ---
-        Button buttonBackToParentDashboard = findViewById(R.id.buttonBackToParentDashboard2);
-        buttonBackToParentDashboard.setOnClickListener(v -> {
-            finish();
-        });
+        ImageButton imageButtonBackChildDashboard = findViewById(R.id.imageButtonBackChildDashboard);
+        imageButtonBackChildDashboard.setOnClickListener(v -> finish());
     }
     private void openEmergencyMedicationScreen() {
         if (childUid == null) return;

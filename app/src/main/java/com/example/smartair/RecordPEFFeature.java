@@ -2,9 +2,11 @@ package com.example.smartair;
 
 import android.os.Bundle;
 import android.content.Intent;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -69,14 +71,14 @@ public class RecordPEFFeature extends AppCompatActivity {
         editTextPEFTag = findViewById(R.id.editTextPEFTag);
         textViewZone = findViewById(R.id.textViewZone);
         Button buttonRecordPEF = findViewById(R.id.buttonRecordPEF);
-        Button buttonBackToChildDashboard = findViewById(R.id.buttonBackToChildDashboard);
+        ImageButton imageButtonBackRecordPEF = findViewById(R.id.imageButtonBackRecordPEF);
 
         // initialize zone (black for unknown)
         textViewZone.setText(getString(R.string.zone_unknown));
         textViewZone.setTextColor(ContextCompat.getColor(this, android.R.color.black));
 
         buttonRecordPEF.setOnClickListener(v -> recordChildPEF());
-        buttonBackToChildDashboard.setOnClickListener(v -> finish());
+        imageButtonBackRecordPEF.setOnClickListener(v -> finish());
     }
 
     private void retrieveChildPB(String childId) {
@@ -192,7 +194,7 @@ public class RecordPEFFeature extends AppCompatActivity {
                 .addOnSuccessListener(documentReference -> {
                     Log.d(TAG, "PEF Log saved: " + documentReference.getId());
                     Toast.makeText(RecordPEFFeature.this, "Saved successfully!", Toast.LENGTH_SHORT).show();
-                    finish();
+                    new Handler().postDelayed(this::finish, 2500);
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error saving PEF", e);

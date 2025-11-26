@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -29,9 +30,7 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
     private Spinner spinnerPreFeeling, spinnerPostFeeling;
     private EditText editDoseCount;
     private Button buttonSubmit;
-
     private String childUid;    // from ChildDashboardActivity
-
     private FirebaseFirestore db;
 
     @Override
@@ -61,6 +60,17 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
         spinnerPostFeeling = findViewById(R.id.spinnerPostFeeling);
         editDoseCount = findViewById(R.id.editDoseCount);
         buttonSubmit = findViewById(R.id.buttonSubmitLog);
+        ImageButton imageButtonBackEmergencyMedication = findViewById(R.id.imageButtonBackEmergencyMedication);
+        ImageButton imageButtonClickForHelp = findViewById(R.id.imageButtonClickForHelp);
+
+        // Set click listener for the back button
+        imageButtonBackEmergencyMedication.setOnClickListener(v -> finish());
+
+        // Set click listener for the help button
+        imageButtonClickForHelp.setOnClickListener(v ->{
+            Intent clickForHelpintent = new Intent(EmergencyMedicationActivity.this, ClickForHelpFeature.class);
+            startActivity(clickForHelpintent);
+        });
 
         setupFeelingSpinners();
         setupSubmitButton();

@@ -44,7 +44,7 @@
         app:layout_constraintTop_toBottomOf="@+id/editTextPassword" />
 
     <ImageButton
-        android:id="@+id/buttonBack"
+        android:id="@+id/imageButtonBackAddChildActivity"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:background="@android:color/transparent"

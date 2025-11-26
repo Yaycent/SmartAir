@@ -14,15 +14,16 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="6dp"
         android:layout_marginEnd="6dp"
-        android:hint="@string/childPersonalBest"
 
+        android:layout_marginBottom="50dp"
+        android:hint="@string/childPersonalBest"
         android:inputType="number|numberDecimal"
         android:minHeight="48dp"
+        android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/editTextChildDOB"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed" />
 
     <EditText
@@ -30,17 +31,17 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="6dp"
-        android:layout_marginTop="16dp"
         android:layout_marginEnd="6dp"
-        android:hint="@string/dateOfBirth_e_g_2020_01_01"
+        android:layout_marginBottom="128dp"
 
+        android:hint="@string/dateOfBirth_e_g_2020_01_01"
         android:inputType="date"
         android:minHeight="48dp"
+        android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/buttonSaveChild"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextChildPB" />
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/buttonSaveChild"
@@ -48,8 +49,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="15dp"
 
-        android:layout_marginTop="32dp"
         android:layout_marginEnd="15dp"
+        android:layout_marginBottom="20dp"
         android:text="@string/save"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -61,30 +62,28 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="6dp"
-        android:layout_marginTop="24dp"
         android:layout_marginEnd="6dp"
+        android:layout_marginBottom="50dp"
         android:ems="10"
         android:fontFamily="sans-serif"
         android:hint="@string/childName"
         android:inputType="text|textPersonName"
-        android:textSize="18sp"
+        android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/editTextChildPB"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.943" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/imageView2"
         android:layout_width="173dp"
         android:layout_height="145dp"
-        app:layout_constraintBottom_toTopOf="@+id/editTextChildName"
+        android:layout_marginTop="148dp"
+        android:contentDescription="Back"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.592"
         app:srcCompat="@drawable/_925740" />
 
     <TextView
@@ -98,27 +97,20 @@
         android:textStyle="italic"
         app:layout_constraintBottom_toBottomOf="@+id/imageView2"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.869"
         app:layout_constraintStart_toEndOf="@+id/imageView2"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.119" />
+        app:layout_constraintVertical_bias="0.312" />
 
-    <Button
-        android:id="@+id/buttonBackToParentDashboard1"
+    <ImageButton
+        android:id="@+id/imageButtonBackAddChildActivity"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/goBackButton"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-    <ImageButton
-        android:id="@+id/buttonBack"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
         android:background="@android:color/transparent"
+        android:contentDescription="Back"
         android:padding="8dp"
         android:src="@drawable/ic_back_white"
-        android:contentDescription="Back"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

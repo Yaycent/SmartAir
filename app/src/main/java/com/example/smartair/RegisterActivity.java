@@ -7,10 +7,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -48,7 +46,7 @@ public class RegisterActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         //Back to login page
-        ImageButton buttonBack = findViewById(R.id.buttonBack);
+        ImageButton buttonBack = findViewById(R.id.imageButtonBackAddChildActivity);
         buttonBack.setOnClickListener(v -> {
             finish();
         });

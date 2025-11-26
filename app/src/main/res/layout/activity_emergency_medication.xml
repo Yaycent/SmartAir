@@ -11,43 +11,47 @@
 
     <TextView
         android:id="@+id/emergencyTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
         android:text="@string/emergency_medication"
-        android:textSize="32sp"
 
-        app:layout_constraintBottom_toTopOf="@id/feelingTitle"
+        android:textAlignment="center"
+        android:textSize="32sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.05"
-        app:layout_constraintVertical_chainStyle="packed"/>
+        app:layout_constraintVertical_chainStyle="packed" />
 
     <TextView
         android:id="@+id/feelingTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="110dp"
+
+        android:layout_marginEnd="12dp"
         android:text="@string/feelings_title"
+        android:textAlignment="center"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginTop="32dp"
-
-        app:layout_constraintTop_toBottomOf="@id/emergencyTitle"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/textPreFeelingLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="44dp"
+        android:layout_marginEnd="12dp"
+
         android:text="@string/pre_feeling_label"
         android:textSize="16sp"
-        android:layout_marginTop="12dp"
-
-        app:layout_constraintTop_toBottomOf="@id/feelingTitle"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/feelingTitle" />
 
     <Spinner
         android:id="@+id/spinnerPreFeeling"
@@ -64,13 +68,16 @@
         android:id="@+id/textPostFeelingLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="12dp"
+
         android:text="@string/post_feeling_label"
         android:textSize="16sp"
-        android:layout_marginTop="12dp"
-
-        app:layout_constraintTop_toBottomOf="@id/spinnerPreFeeling"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.494"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/spinnerPreFeeling" />
 
     <Spinner
         android:id="@+id/spinnerPostFeeling"
@@ -87,31 +94,69 @@
         android:id="@+id/editDoseCount"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="12dp"
+
+        android:autofillHints="quantity"
         android:hint="@string/dose_count_hint"
         android:inputType="number"
-        android:autofillHints="quantity"
-
-        android:layout_marginTop="20dp"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="12dp"
 
         android:textColor="@android:color/black"
         android:textColorHint="@android:color/black"
 
-        app:layout_constraintTop_toBottomOf="@id/spinnerPostFeeling"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/spinnerPostFeeling" />
 
     <Button
         android:id="@+id/buttonSubmitLog"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="32dp"
+
+        android:layout_marginEnd="30dp"
+        android:text="@string/submit_log"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/editDoseCount" />
+
+    <ImageButton
+        android:id="@+id/imageButtonClickForHelp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="35dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="Call for assistant"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/_925740" />
+
+    <TextView
+        android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/submit_log"
+        android:layout_marginStart="193dp"
+        android:layout_marginEnd="36dp"
+        android:text="@string/needHelp"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/imageButtonClickForHelp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-        app:layout_constraintTop_toBottomOf="@id/editDoseCount"
+    <ImageButton
+        android:id="@+id/imageButtonBackEmergencyMedication"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:contentDescription="Back"
+        android:padding="8dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_back_white" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

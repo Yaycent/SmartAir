@@ -9,13 +9,11 @@ import android.widget.Toast;
 import android.widget.ImageButton;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -65,13 +63,11 @@ public class AddChildActivity extends AppCompatActivity {
         editTextChildPB = findViewById(R.id.editTextChildPB);
 
         Button buttonSaveChild = findViewById(R.id.buttonSaveChild);
-        Button buttonBackToParentDashboard = findViewById(R.id.buttonBackToParentDashboard1);
-        ImageButton buttonBack = findViewById(R.id.buttonBack);
+        ImageButton imageButtonBackAddChildActivity = findViewById(R.id.imageButtonBackAddChildActivity);
 
         // Set up button click event listener
         buttonSaveChild.setOnClickListener(v -> saveChildData());
-        buttonBackToParentDashboard.setOnClickListener(v -> finish());
-        buttonBack.setOnClickListener(v -> finish());
+        imageButtonBackAddChildActivity.setOnClickListener(v -> finish());
     }
 
     private void saveChildData() {

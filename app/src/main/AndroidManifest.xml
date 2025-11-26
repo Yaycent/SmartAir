@@ -11,6 +11,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAir">
         <activity
+            android:name=".ClickForHelpFeature"
+            android:exported="false"
+            android:theme="@style/Theme.SmartAir" />
+        <activity
             android:name=".EmergencyMedicationActivity"
             android:exported="false" />
         <activity
@@ -31,11 +35,9 @@
         <activity
             android:name=".AddChildActivity"
             android:exported="false" />
-
         <activity
             android:name=".DailyCheckInActivity"
             android:exported="false" />
-
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -45,8 +47,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-
     </application>
+
+    <!-- For internet usage -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
 </manifest>

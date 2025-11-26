@@ -54,4 +54,7 @@
     </string-array>
     <string name="submit_log">Submit Log</string>
 
+    <string name="needHelp">Need help? Click me!</string>
+    <string name="techniqueHelper">How to use your asthma inhaler with a spacer and mask</string>
+
 </resources>

@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -30,7 +29,11 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
     private Spinner spinnerPreFeeling, spinnerPostFeeling;
     private EditText editDoseCount;
     private Button buttonSubmit;
+    private String parentUid;
+
     private String childUid;    // from ChildDashboardActivity
+    private String rescueMedId;
+
     private FirebaseFirestore db;
 
     @Override
@@ -46,10 +49,13 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         childUid = intent.getStringExtra(CHILD_UID);
+        parentUid = intent.getStringExtra(PARENT_UID);
+        rescueMedId = intent.getStringExtra(MEDICINE_ID);
 
-        if (childUid == null) {
-            Log.e(TAG, "Error: CHILD_UID missing!");
-            Toast.makeText(this, "Child information missing.", Toast.LENGTH_SHORT).show();
+
+        if (childUid == null || rescueMedId == null || parentUid == null) {
+            Toast.makeText(this, "Missing medication info!", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "childUid=" + childUid + " parentUid=" + parentUid + " rescueMedId=" + rescueMedId);
             finish();
             return;
         }
@@ -126,14 +132,58 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
             return;
         }
 
+        // Avoid doseCount <=0
+        if (doseCount <= 0) {
+            editDoseCount.setError("Dose must be greater than 0");
+            return;
+        }
+
+        // Get remaining dose from Firestore
+        db.collection("medicine")
+                .document(rescueMedId)
+                .get()
+                .addOnSuccessListener(doc -> {
+
+                    if (!doc.exists()) {
+                        Toast.makeText(this, "Medicine not found!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    Long remLong = doc.getLong("remainingDose");
+                    int remainingDose = (remLong != null) ? remLong.intValue() : 0;
+
+                    if (remainingDose == 0) {
+                        Toast.makeText(this, "No inventory left. Please contact your parent.", Toast.LENGTH_LONG).show();
+                        finish();  // <-- leave activity so child won't get stuck
+                        return;
+                    }
+
+                    if (doseCount > remainingDose) {
+                        editDoseCount.setError("Dose exceeds remaining inventory (" + remainingDose + ")");
+                        return;
+                    }
+                    uploadRescueLog(preFeeling, postFeeling, doseCount);
+
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Unable to check remaining dose", Toast.LENGTH_SHORT).show());
+    }
+
+    /**
+     * Helper function for submit medicine log.
+     */
+    private void uploadRescueLog(String preFeeling, String postFeeling, int doseCount) {
+
         // Build a log object to upload to Firestore
         Map<String, Object> log = new HashMap<>();
         log.put("childUid", childUid);
+        log.put("parentUid", parentUid);
+        log.put("medicineId", rescueMedId);
         log.put("timestamp", FieldValue.serverTimestamp());
         log.put("type", "Rescue");
         log.put("preFeeling", preFeeling);
         log.put("postFeeling", postFeeling);
         log.put("doseCount", doseCount);
+        log.put("processed", false);
 
         // Upload the log
         db.collection("medicationLogs")
@@ -144,8 +194,8 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
                     finish();
                 })
                 .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error adding log", e);
-                        Toast.makeText(this, "Failed to save: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error adding log", e);
+                    Toast.makeText(this, "Failed to save: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 }

@@ -27,16 +27,17 @@
         android:id="@+id/tvGoToChildDashboard"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Child Dashboard →"
-        android:textSize="16sp"
-        android:textColor="@android:color/black"
-        android:padding="4dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:clickable="true"
         android:focusable="true"
-        app:layout_constraintTop_toTopOf="parent"
+        android:minHeight="48dp"
+        android:padding="4dp"
+        android:text="Child Dashboard →"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Manage Children Button (Left side) -->
     <Button
@@ -69,34 +70,68 @@
         app:layout_constraintTop_toBottomOf="@id/tvHiParent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-
-    <!-- Logout button (Bottom Right) -->
-    <Button
-        android:id="@+id/buttonOpenMedicineCabinet"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="172dp"
-        android:text="@string/medicine_cabinet"
-
+    <!-- Medicine Inventory -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardMedicationInventory"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="24dp"
+        android:background="@android:color/darker_gray"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.536"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvGoToChildDashboard" />
+        app:layout_constraintTop_toBottomOf="@id/buttonAddChild"
+        app:layout_constraintVertical_bias="0.08">
 
+        <TextView
+            android:id="@+id/textInventoryTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/medicine_inventory"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/buttonAddMedicine"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_add_medicine"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerMedicineInventory"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textInventoryTitle"
+            app:layout_constraintVertical_bias="0.0" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Logout button (Bottom Right) -->
     <TextView
         android:id="@+id/tvLogout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Logout"
-        android:textSize="16sp"
-        android:textColor="#757575"
-        android:padding="4dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
         android:background="@android:color/transparent"
         android:clickable="true"
         android:focusable="true"
+        android:minHeight="48dp"
+        android:padding="4dp"
+        android:text="Logout"
+        android:textColor="#757575"
+        android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

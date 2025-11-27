@@ -34,6 +34,19 @@
     <string name="remaining_not_calculated">Remaining: Not calculated</string>
     <string name="save_medicine">Save Medicine Info</string>
 
+    <string name="add_medicine">Add Medicine</string>
+    <string name="medicine_name">Medicine Name</string>
+    <string name="medicine_name_hint">Medicine Name</string>
+    <string name="low_status">Low</string>
+    <string name="remaining_dose">35/200</string>
+    <string name="button_add_medicine">Add Medicine</string>
+
+    <string name="dose_remaining_format">%1$d / %2$d remaining</string>
+    <string name="percent_format">%1$d%%</string>
+
+    <string name="rescue">Rescue</string>
+
+
     <string name="rescue_med">Rescue Medication</string>
     <string name="button_controller">Controller Medication</string>
     <string name="emergency_medication">Emergency Medication</string>
@@ -53,6 +66,17 @@
         <item>@string/feeling_worse</item>
     </string-array>
     <string name="submit_log">Submit Log</string>
+    <string name="each_use_1">Each use: 1</string>
+
+    <string name="status_empty">Empty</string>
+    <string name="status_low">Low</string>
+    <string name="status_ok">OK</string>
+    <string name="each_use_format">Each use: %1$d</string>
+    <string name="dose_per_use_hint">Dose per use (Controller only)</string>
+    <string-array name="medicine_type_options">
+        <item>Rescue</item>
+        <item>Controller</item>
+    </string-array>
 
     <string name="needHelp">Need help? Click me!</string>
     <string name="techniqueHelper">How to use your asthma inhaler with a spacer and mask</string>

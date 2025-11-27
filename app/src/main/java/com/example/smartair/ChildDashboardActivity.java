@@ -17,8 +17,16 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.Calendar;
 
 import static com.example.smartair.Constants.*;
+
+
 
 public class ChildDashboardActivity extends AppCompatActivity {  
     private static final String TAG = "ChildDashboardActivity";
@@ -27,6 +35,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
     private String childName;
     private String childUid;
     private String parentUid;
+    private TextView tvDaysCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +80,82 @@ public class ChildDashboardActivity extends AppCompatActivity {
         if (childName != null && hiText != null) {
             hiText.setText("Hi, " + childName);
         }
+
+        tvDaysCount = findViewById(R.id.tvDaysCount);
+        Log.d(TAG, "tvDaysCount object = " + tvDaysCount);
+        loadControllerStreak();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadControllerStreak();   // Reload every time you come back to this screen
+    }
+
+    private void loadControllerStreak() {
+        if (childUid == null) {
+            Log.w(TAG, "childUid is null, cannot load streak");
+            return;
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("symptomLogs")
+                .whereEqualTo("childUid", childUid)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(this::handleSymptomSnapshot)
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to load symptom logs for streak", e);
+                    updateStreakUI(0);
+                });
+    }
+
+    private void handleSymptomSnapshot(QuerySnapshot snapshots) {
+        int streak = 0;
+        // Expected date = today (only keep the day)
+        Calendar expected = Calendar.getInstance();
+        truncateToDay(expected);
+
+        for (QueryDocumentSnapshot doc : snapshots) {
+            Long tsLong = doc.getLong("timestamp");
+            if (tsLong == null) continue;
+
+            Calendar record = Calendar.getInstance();
+            record.setTimeInMillis(tsLong);
+            truncateToDay(record);
+
+            // If this record is the expected day → streak+1
+            if (record.equals(expected)) {
+                streak++;
+                expected.add(Calendar.DAY_OF_YEAR, -1);
+            }
+            // If the record is more than one day before expected, there is a break, break the loop
+            else if (record.before(expected)) {
+                break;
+            }
+            // If the record is in the future (should not happen), ignore
+        }
+        updateStreakUI(streak);
+    }
+
+    private void truncateToDay(Calendar cal) {
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+    }
+
+    private void updateStreakUI(int streak) {
+         if (tvDaysCount == null) return;
+
+         if (streak == 0) {
+             tvDaysCount.setText("Start your streak!");
+         } else if (streak == 1) {
+             tvDaysCount.setText("1st Day Complete!");
+         } else {
+             tvDaysCount.setText("On a roll! 🔥 " + streak + " Days");
+         }
     }
 
     private void initButtons() {

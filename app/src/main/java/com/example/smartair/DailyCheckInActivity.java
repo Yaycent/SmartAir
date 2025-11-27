@@ -1,6 +1,7 @@
 package com.example.smartair;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.RadioButton;
@@ -125,14 +126,29 @@ public class DailyCheckInActivity extends AppCompatActivity {
         );
 
         // Save to symptomLogs collection
+        // db.collection("symptomLogs")
+        //         .add(log)
+        //         .addOnSuccessListener(docRef -> {
+        //             Toast.makeText(this, "Symptom log saved", Toast.LENGTH_SHORT).show();
+        //             finish(); 
+        //         })
+        //         .addOnFailureListener(e -> {
+        //             Toast.makeText(this, "Symptom log save failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        //         });
         db.collection("symptomLogs")
                 .add(log)
                 .addOnSuccessListener(docRef -> {
+                    Log.d("DailyCheckInActivity",
+                            "Symptom log saved with id = " + docRef.getId());
                     Toast.makeText(this, "Symptom log saved", Toast.LENGTH_SHORT).show();
-                    finish(); 
+                    finish();
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Symptom log save failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e("DailyCheckInActivity",
+                            "Symptom log save failed", e);
+                    Toast.makeText(this,
+                            "Symptom log save failed: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
                 });
     }
 }

@@ -69,18 +69,36 @@ public class MedicineAdapter extends RecyclerView.Adapter<MedicineAdapter.Medici
 
         // Calculate %
         double percent = item.getPercentage();
+        boolean isExpiring = item.isExpiringSoon();
 
         // Determine Status
         if (percent <= 0) {
+            holder.textStatus.setVisibility(View.VISIBLE);
             holder.textStatus.setText(R.string.status_empty);
-            setTagColor(holder.textStatus, Color.RED);
+            holder.textStatus.setBackgroundResource(R.drawable.status_tag_bg);
+            holder.textStatus.setTextColor(Color.WHITE);
         } else if (percent <= 20) {
+            holder.textStatus.setVisibility(View.VISIBLE);
             holder.textStatus.setText(R.string.status_low);
-            setTagColor(holder.textStatus, Color.RED);
+            holder.textStatus.setBackgroundResource(R.drawable.status_tag_bg);
+            holder.textStatus.setTextColor(Color.WHITE);
         } else {
             holder.textStatus.setText(R.string.status_ok);
             setTagColor(holder.textStatus, Color.parseColor("#4CAF50")); // green
+        }
 
+        if (isExpiring) {
+            holder.textStatus.setVisibility(View.VISIBLE);
+            holder.textStatus.setText("Expired soon");
+            holder.textStatus.setBackgroundResource(R.drawable.status_tag_yellow);
+            holder.textStatus.setTextColor(Color.BLACK);
+        }
+
+        if (item.isReplacementNeeded()) {
+            holder.textReplacement.setVisibility(View.VISIBLE);
+            holder.textReplacement.setText("Reminder: Please buy replacement!");
+        } else {
+            holder.textReplacement.setVisibility(View.GONE);
         }
     }
 
@@ -104,7 +122,7 @@ public class MedicineAdapter extends RecyclerView.Adapter<MedicineAdapter.Medici
      * Holds all UI references for each single medicine item row.
      */
     public static class MedicineViewHolder extends RecyclerView.ViewHolder {
-        TextView textName, textType, textDose, textDosePerUse, textStatus;
+        TextView textName, textType, textDose, textDosePerUse, textStatus, textReplacement;
 
         public MedicineViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -113,6 +131,7 @@ public class MedicineAdapter extends RecyclerView.Adapter<MedicineAdapter.Medici
             textDose = itemView.findViewById(R.id.textDose);
             textDosePerUse = itemView.findViewById(R.id.textDosePerUse);
             textStatus = itemView.findViewById(R.id.textStatus);
+            textReplacement = itemView.findViewById(R.id.textReplacement);
         }
     }
 }

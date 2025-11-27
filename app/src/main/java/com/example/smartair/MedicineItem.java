@@ -1,5 +1,11 @@
 package com.example.smartair;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+
 public class MedicineItem {
     private String id;
     private String name;
@@ -35,6 +41,34 @@ public class MedicineItem {
     public double getPercentage() {
         if (totalDose == 0) return 0;
         return (remainingDose * 1.0 / totalDose) * 100;
+    }
+
+    public boolean isExpiringSoon() {
+        if (expiryDate == null || expiryDate.isEmpty()) {
+            return false;
+        }
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        try {
+            Date dateExpiry = sdf.parse(expiryDate);
+            Date dateNow = new Date();
+
+            // 计算差值
+            long diffInMillies = dateExpiry.getTime() - dateNow.getTime();
+            long diffInDays = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+
+            // 如果剩余天数小于 30 天，且还没有过期（大于0），或者是已经过期了
+            // 这里逻辑是：只要少于30天（包括负数即已过期）都算 expiring soon
+            return diffInDays <= 30;
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean isReplacementNeeded() {
+        return getPercentage() <= 20 || isExpiringSoon();
     }
 
 }

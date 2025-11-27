@@ -4,53 +4,60 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp">
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp">
 
     <TextView
         android:id="@+id/textMedicineName"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/medicine_name"
-        android:textSize="18sp"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
         android:maxLines="1"
         android:ellipsize="end"
-
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/textStatus"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Status Tag -->
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintHorizontal_bias="0"/>
 
     <TextView
         android:id="@+id/textStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="32dp"
+        android:layout_marginStart="12dp"
         android:background="@drawable/status_tag_bg"
-
-        android:paddingStart="10dp"
-        android:paddingTop="4dp"
-        android:paddingEnd="10dp"
-        android:paddingBottom="4dp"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="4dp"
         android:text=""
-        android:textColor="@android:color/white"
-        android:textSize="14sp"
+        android:textColor="@android:color/black"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textMedicineName"
+        app:layout_constraintStart_toEndOf="@+id/textMedicineName"
+        app:layout_constraintTop_toTopOf="@+id/textMedicineName" />
 
-        app:layout_constraintEnd_toStartOf="@+id/textDose"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Num Remaining -->
     <TextView
         android:id="@+id/textDose"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/remaining_dose"
-        android:textSize="15sp"
-
+        android:text="35/200"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
-    <!-- Medicine Type: Rescue / Controller -->
+    <TextView
+        android:id="@+id/textExpiryDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Exp: 2025-12-31"
+        android:textColor="#888888"
+        android:textSize="12sp"
+        android:visibility="gone"
+        android:layout_marginTop="2dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textDose" />
+
     <TextView
         android:id="@+id/textMedicineType"
         android:layout_width="wrap_content"
@@ -58,13 +65,10 @@
         android:text="@string/rescue"
         android:textColor="#666666"
         android:textSize="14sp"
-        android:layout_marginTop="4dp"
-
+        android:layout_marginTop="6dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textMedicineName" />
 
-
-    <!-- Dose per use (Only for Controller, adapter will hide for Rescue) -->
     <TextView
         android:id="@+id/textDosePerUse"
         android:layout_width="wrap_content"
@@ -72,10 +76,22 @@
         android:text="@string/each_use_1"
         android:textColor="#666666"
         android:textSize="14sp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="2dp"
         android:visibility="gone"
-
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textMedicineType" />
+
+    <TextView
+        android:id="@+id/textReplacement"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Needs replacement"
+        android:textColor="#D32F2F"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textDosePerUse" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

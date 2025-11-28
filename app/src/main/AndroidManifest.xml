@@ -24,9 +24,6 @@
             android:name=".RecordPEFFeature"
             android:exported="false" />
         <activity
-            android:name=".MedicineCabinetActivity"
-            android:exported="false" />
-        <activity
             android:name=".ChildDashboardActivity"
             android:exported="false" />
         <activity

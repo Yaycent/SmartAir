@@ -126,6 +126,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
 
         db.collection("medicine")
                 .whereEqualTo("parentUid", parentUid)
+                .whereEqualTo("childUid", childUid)
                 .whereEqualTo("medType", "Rescue")
                 .limit(1)
                 .get()

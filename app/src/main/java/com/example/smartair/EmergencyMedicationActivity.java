@@ -161,6 +161,7 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
 
                     if (doseCount > remainingDose) {
                         editDoseCount.setError("Dose exceeds remaining inventory (" + remainingDose + ")");
+                        editDoseCount.setText("");
                         return;
                     }
                     uploadRescueLog(preFeeling, postFeeling, doseCount);

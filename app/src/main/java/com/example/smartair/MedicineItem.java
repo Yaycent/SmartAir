@@ -53,12 +53,9 @@ public class MedicineItem {
             Date dateExpiry = sdf.parse(expiryDate);
             Date dateNow = new Date();
 
-            // 计算差值
             long diffInMillies = dateExpiry.getTime() - dateNow.getTime();
             long diffInDays = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
 
-            // 如果剩余天数小于 30 天，且还没有过期（大于0），或者是已经过期了
-            // 这里逻辑是：只要少于30天（包括负数即已过期）都算 expiring soon
             return diffInDays <= 30;
 
         } catch (ParseException e) {

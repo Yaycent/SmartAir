@@ -35,7 +35,7 @@
         android:layout_marginBottom="128dp"
 
         android:hint="@string/dateOfBirth_e_g_2020_01_01"
-        android:inputType="date"
+        android:inputType="phone"
         android:minHeight="48dp"
         android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/buttonSaveChild"

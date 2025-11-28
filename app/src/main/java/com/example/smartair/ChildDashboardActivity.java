@@ -17,9 +17,12 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import static com.example.smartair.Constants.*;
+
+import java.util.List;
 
 public class ChildDashboardActivity extends AppCompatActivity {  
     private static final String TAG = "ChildDashboardActivity";
@@ -91,9 +94,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
 
         // --- Controller ---
         Button buttonController = findViewById(R.id.btnCheck);
-        buttonController.setOnClickListener(view -> {
-            Toast.makeText(this, "Controller clicked", Toast.LENGTH_SHORT).show();
-        });
+        buttonController.setOnClickListener(view -> handleControllerCheck());
 
         // --- Check-in ---
         Button buttonCheckin = findViewById(R.id.buttonCheckin);
@@ -112,6 +113,8 @@ public class ChildDashboardActivity extends AppCompatActivity {
         ImageButton imageButtonBackChildDashboard = findViewById(R.id.imageButtonBackChildDashboard);
         imageButtonBackChildDashboard.setOnClickListener(v -> finish());
     }
+
+    // Rescue
     private void openEmergencyMedicationScreen() {
 
         if (childUid == null || parentUid == null) {
@@ -145,7 +148,66 @@ public class ChildDashboardActivity extends AppCompatActivity {
                     startActivity(intent);
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to load medication info.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to load medication info." + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    // Controller
+    private void handleControllerCheck() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("medicine")
+                .whereEqualTo("parentUid", parentUid)
+                .whereEqualTo("medType", "Controller")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (querySnapshot.isEmpty()) {
+                        Toast.makeText(this, "No controller medication found!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    List<DocumentSnapshot> meds = querySnapshot.getDocuments();
+
+                    for (DocumentSnapshot med : meds) {
+                        deductMedicine(med);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to load medication info: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void deductMedicine(DocumentSnapshot document) {
+        String docId = document.getId();
+        String medName = document.getString("name");
+
+        // find data
+        Long currentDoseLong = document.getLong("remainingDose");
+        Long dosePerUseLong = document.getLong("dosePerUse");
+
+        int currentDose = (currentDoseLong != null) ? currentDoseLong.intValue() : 0;
+        int dosePerUse = (dosePerUseLong != null) ? dosePerUseLong.intValue() : 1;
+        if (dosePerUse <= 0) dosePerUse = 1;
+
+        // check does
+        if (currentDose < dosePerUse) {
+            Toast.makeText(this, medName + "Not enough medicine!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // calculate new does
+        int newDose = currentDose - dosePerUse;
+
+        // update firebase
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("medicine").document(docId)
+                .update("remainingDose", newDose)
+                .addOnSuccessListener(aVoid -> {
+                    String msg = "Well Done!";
+                    Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Network Error: Update Failed", Toast.LENGTH_SHORT).show();
                 });
     }
 

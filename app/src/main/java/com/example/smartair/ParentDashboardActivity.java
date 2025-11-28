@@ -1,6 +1,7 @@
 package com.example.smartair;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,19 +14,35 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.LimitLine;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static com.example.smartair.Constants.*;
 
@@ -34,10 +51,17 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
     // UI components
     private Spinner spinnerChild;
+    private Spinner spinnerRange;
     private Button buttonAddChild;
     private TextView tvGoToChildDashboard;
     private TextView tvLogout;
     private Button buttonMedicineCabinet;
+
+    private LineChart chartPEF;
+
+    private TextView textViewTodayPEFZone;
+
+
 
     // Firebase
     private FirebaseFirestore db;
@@ -109,18 +133,41 @@ public class ParentDashboardActivity extends AppCompatActivity {
         tvLogout = findViewById(R.id.tvLogout);
         recyclerView = findViewById(R.id.recyclerMedicineInventory);
         Button buttonAddMedicine = findViewById(R.id.buttonAddMedicine);
+        spinnerRange = findViewById(R.id.spinnerTimeRange);
+        chartPEF = findViewById(R.id.chartPEF);
+        textViewTodayPEFZone = findViewById(R.id.textViewTodayPEFZone);
 
         // Spinner
+
         spinnerChild.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 savedChildIndex = position;
+
+                if (position > 0) {
+                    if (position < childIds.size()) {
+                        String childId = childIds.get(position);
+                        int days = (spinnerRange.getSelectedItemPosition() == 0) ? 7 : 30;
+
+                        fetchTodayPEFZone(childId);
+
+                        loadPEFData(childId, days);
+                    }
+                } else {
+                    chartPEF.clear();
+                    chartPEF.setNoDataText("Please select a child to view PEF data.");
+                    chartPEF.invalidate();
+
+                    if (textViewTodayPEFZone != null) {
+                        textViewTodayPEFZone.setText("Select a Child");
+                        textViewTodayPEFZone.setTextColor(Color.BLACK);
+                    }
+                }
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
-
-        // --- Logout ---
+        // Logout
         tvLogout.setOnClickListener(v -> {
             auth.signOut();
             Intent intent = new Intent(ParentDashboardActivity.this, MainActivity.class);
@@ -130,14 +177,14 @@ public class ParentDashboardActivity extends AppCompatActivity {
             finish();
         });
 
-        // --- Add Child ---
+        //Add Child
         buttonAddChild.setOnClickListener(v -> {
             Intent intent = new Intent(ParentDashboardActivity.this, AddChildActivity.class);
             intent.putExtra(PARENT_UID, parentUid); // 使用常量
             startActivity(intent);
         });
 
-        // --- Go to Child Dashboard ---
+        // Go to Child Dashboard
         tvGoToChildDashboard.setOnClickListener(v -> {
             int index = spinnerChild.getSelectedItemPosition();
 
@@ -172,6 +219,27 @@ public class ParentDashboardActivity extends AppCompatActivity {
             startActivity(addMedIntent);
         });
 
+        ArrayAdapter<String> rangeAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                new String[]{"7 Days", "30 Days"});
+        rangeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerRange.setAdapter(rangeAdapter);
+
+        spinnerRange.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                int days = (position == 0) ? 7 : 30;
+
+                int childIndex = spinnerChild.getSelectedItemPosition();
+                if (childIndex > 0) {
+                    loadPEFData(childIds.get(childIndex), days);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
     }
 
@@ -249,4 +317,296 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     adapter.notifyDataSetChanged();
                 });
     }
+
+    private void loadPEFData(String childId, int days) {
+
+        long now = System.currentTimeMillis();
+        long from = now - days * 24L * 60 * 60 * 1000;
+
+        db.collection("pefLogs")
+                .whereEqualTo("childId", childId)
+                .whereGreaterThan("timeStamp", from)
+                .orderBy("timeStamp")
+                .get()
+                .addOnSuccessListener(query -> {
+
+                    Map<String, Float> dailyValues = new LinkedHashMap<>();
+                    Map<String, String> dailyTags = new LinkedHashMap<>();
+
+                    SimpleDateFormat dayFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+                    for (QueryDocumentSnapshot log : query) {
+
+                        long ts = log.getLong("timeStamp");
+                        float value = log.getDouble("value").floatValue();
+                        String tag = log.getString("tag");
+                        if (tag == null) tag = "";
+
+                        String day = dayFormat.format(new Date(ts));
+
+
+                        dailyValues.put(day, value);
+                        dailyTags.put(day, tag);
+                    }
+
+                    ArrayList<Entry> finalEntries = new ArrayList<>();
+                    ArrayList<String> finalTags = new ArrayList<>();
+
+                    Calendar cal = Calendar.getInstance();
+                    cal.add(Calendar.DAY_OF_YEAR, -(days - 1));
+
+                    for (int i = 0; i < days; i++) {
+                        String day = dayFormat.format(cal.getTime());
+                        float x = i;
+
+                        if (dailyValues.containsKey(day)) {
+                            finalEntries.add(new Entry(x, dailyValues.get(day)));
+                            finalTags.add(dailyTags.get(day));
+                        } else {
+                            finalEntries.add(new Entry(x, Float.NaN));
+                            finalTags.add("");
+                        }
+
+                        cal.add(Calendar.DAY_OF_YEAR, 1);
+                    }
+
+
+                    db.collection("children").document(childId)
+                            .get()
+                            .addOnSuccessListener(doc -> {
+                                Double PB = doc.getDouble("childPB");
+                                if (PB == null) PB = 0.0;
+
+                                drawPEFChart(finalEntries, finalTags, PB);
+                            });
+                });
+    }
+
+
+
+    private void drawPEFChart(ArrayList<Entry> entries, ArrayList<String> tags, double PB) {
+
+        if (entries.isEmpty()) {
+            chartPEF.clear();
+            chartPEF.setNoDataText("No PEF data yet");
+            return;
+        }
+
+        LineDataSet set = new LineDataSet(entries, "PEF");
+
+        set.setLineWidth(2f);
+        set.setCircleRadius(4f);
+        set.setColor(Color.BLUE);
+        set.setCircleColor(Color.BLUE);
+        set.setDrawValues(false);
+        set.setMode(LineDataSet.Mode.LINEAR);
+        set.setDrawCircles(true);
+
+
+        set.setDrawHighlightIndicators(false);
+        set.setDrawFilled(false);
+        set.setFormLineWidth(1f);
+
+        LineData data = new LineData(set);
+        chartPEF.setData(data);
+
+        // --- Y Axis ---
+        YAxis left = chartPEF.getAxisLeft();
+        left.removeAllLimitLines();
+
+        left.setAxisMinimum(0f);
+        left.setAxisMaximum((float) PB);
+
+        float green = (float) (PB * 0.8);
+        float yellow = (float) (PB * 0.5);
+
+        LimitLine greenZone = new LimitLine(green, "");
+        greenZone.setLineWidth(0f);
+
+        LimitLine yellowZone = new LimitLine(yellow, "");
+        yellowZone.setLineWidth(0f);
+
+        left.addLimitLine(greenZone);
+        left.addLimitLine(yellowZone);
+
+        chartPEF.getAxisRight().setEnabled(false);
+
+        XAxis xAxis = chartPEF.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setGranularity(1f);
+        xAxis.setGranularityEnabled(true);
+
+        xAxis.setAvoidFirstLastClipping(false);
+        xAxis.setCenterAxisLabels(false);
+
+        chartPEF.setVisibleXRangeMinimum(entries.size());
+        chartPEF.setVisibleXRangeMaximum(entries.size());
+
+        ArrayList<String> xLabels = new ArrayList<>();
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_YEAR, -(entries.size() - 1));
+
+        SimpleDateFormat fmt = new SimpleDateFormat("MM/dd");
+
+        for (int i = 0; i < entries.size(); i++) {
+            xLabels.add(fmt.format(cal.getTime()));
+            cal.add(Calendar.DAY_OF_YEAR, 1);
+        }
+
+
+        xAxis.setLabelCount(xLabels.size(), true);
+
+
+        boolean isThirtyDays = (entries.size() > 10);
+        SimpleDateFormat fmtFull = new SimpleDateFormat("MM/dd");
+
+        xAxis.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getAxisLabel(float value, AxisBase axis) {
+
+                int index = (int) value;
+                if (index < 0 || index >= xLabels.size()) return "";
+
+                String date = xLabels.get(index);
+                String dayStr = date.substring(3, 5);
+                int day = Integer.parseInt(dayStr);
+
+                // --------- 7 Days: Show all ---------
+                if (!isThirtyDays) {
+                    return date;
+
+                }
+
+                if (isThirtyDays) {
+                    xAxis.setLabelRotationAngle(0f);
+                    xAxis.setAvoidFirstLastClipping(false);
+                    xAxis.setGranularity(1f);
+                    xAxis.setGranularityEnabled(true);
+
+
+                    xAxis.setSpaceMin(0f);
+                    xAxis.setSpaceMax(0f);
+                    xAxis.setLabelCount(xLabels.size());
+                    xAxis.setDrawLabels(true);
+                }
+
+
+                // --------- 30 Days: show 5/10/15/20/25 ---------
+                if (day == 5 || day == 10 || day == 15 || day == 20 || day == 25)
+                    return date;
+
+                // --------- Month end: auto detect ---------
+                Calendar c = Calendar.getInstance();
+                try {
+                    c.setTime(fmtFull.parse(date));
+                } catch (Exception ignored) {}
+
+                int maxDay = c.getActualMaximum(Calendar.DAY_OF_MONTH);
+                if (day == maxDay)
+                    return date;
+
+                return "";
+            }
+        });
+
+
+
+
+        chartPEF.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+            @Override
+            public void onValueSelected(Entry e, Highlight h) {
+                int index = entries.indexOf(e);
+                String tag = tags.get(index);
+                Toast.makeText(ParentDashboardActivity.this, "Tag: " + tag, Toast.LENGTH_SHORT).show();
+            }
+            @Override
+            public void onNothingSelected() {}
+        });
+
+
+        chartPEF.setDragEnabled(false);
+        chartPEF.setScaleEnabled(false);
+        chartPEF.setPinchZoom(false);
+        chartPEF.setDoubleTapToZoomEnabled(false);
+        chartPEF.setHighlightPerDragEnabled(false);
+        chartPEF.getViewPortHandler().setMaximumScaleX(1f);
+        chartPEF.getViewPortHandler().setMaximumScaleY(1f);
+
+        chartPEF.invalidate();
+    }
+
+
+    private void fetchTodayPEFZone(String childId) {
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long startOfToday = calendar.getTimeInMillis();
+
+        Log.d(TAG, "Start of Today = " + startOfToday);
+
+        db.collection("pefLogs")
+                .whereEqualTo("childId", childId)
+                .whereGreaterThanOrEqualTo("timeStamp", startOfToday)
+                .orderBy("timeStamp", Query.Direction.ASCENDING)
+                .get()
+                .addOnSuccessListener(snap -> {
+                    Log.d(TAG, "Found " + snap.size() + " logs today");
+
+                    if (!snap.isEmpty()) {
+                        String zone = snap.getDocuments()
+                                .get(snap.size() - 1)
+                                .getString("zone");
+
+                        updateDashboardZoneUI(zone);
+                    } else {
+                        updateDashboardZoneUI("No Record");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to fetch today PEF", e);
+                    updateDashboardZoneUI("Error");
+                });
+    }
+
+
+
+    private void updateDashboardZoneUI(String zone) {
+        if (textViewTodayPEFZone == null) return;
+
+        int textColor;
+        String zoneText;
+
+
+        switch (zone) {
+            case "Green":
+                zoneText = "Today's Zone: GREEN";
+                textColor = android.R.color.holo_green_light;
+                break;
+            case "Yellow":
+                zoneText = "Today's Zone: YELLOW";
+                textColor = android.R.color.holo_orange_light;
+                break;
+            case "Red":
+                zoneText = "Today's Zone: RED";
+                textColor = android.R.color.holo_red_light;
+                break;
+            case "No Record":
+                zoneText = "No PEF Record Today";
+                textColor = android.R.color.darker_gray;
+                break;
+            case "Unknown":
+            case "Error":
+            default:
+                zoneText = "Zone: Unknown/Error";
+                textColor = android.R.color.black;
+                break;
+        }
+
+        textViewTodayPEFZone.setText(zoneText);
+        textViewTodayPEFZone.setTextColor(ContextCompat.getColor(this, textColor));
+    }
+
 }

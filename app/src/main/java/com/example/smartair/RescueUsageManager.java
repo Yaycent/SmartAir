@@ -5,13 +5,25 @@ import android.util.Log;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 public class RescueUsageManager {
     private static final String TAG = "RescueUsageManager";
     private final FirebaseFirestore db;
-
+    private ListenerRegistration registration = null;
     public RescueUsageManager() {
         this.db = FirebaseFirestore.getInstance();
+    }
+
+    /**
+     * Stop previous listeners.
+     */
+    public void stop() {
+        if (registration != null) {
+            Log.d(TAG, "Removing previous listener to prevent duplicate triggers.");
+            registration.remove();
+            registration = null;
+        }
     }
 
     /**
@@ -19,9 +31,21 @@ public class RescueUsageManager {
      * in the Firestore. If a new Rescue log is detected,
      * inventory will be updated (decrease inventory ONCE per log).
      */
-    public void startListening(String parentUid) {
-        db.collection("medicationLogs")
+    public void startListening(String parentUid, String childUid) {
+        stop();
+
+        if (parentUid == null || childUid == null) {
+            Log.e(TAG, "startListening called with null UIDs. parentUid=" + parentUid
+                    + " childUid=" + childUid);
+            return;
+        }
+
+        Log.d(TAG, "Start listening for Rescue logs. parent=" + parentUid
+                + " child=" + childUid);
+
+        registration = db.collection("medicationLogs")
                 .whereEqualTo("parentUid", parentUid) // only see own child logs
+                .whereEqualTo("childUid", childUid) // one child one inventory
                 .whereEqualTo("type", "Rescue")      // only rescue logs
                 .whereEqualTo("processed", false)    // only unprocessed logs
                 .addSnapshotListener((snap, e) -> {

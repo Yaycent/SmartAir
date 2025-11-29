@@ -20,6 +20,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.example.smartair.Constants.CHILD_UID;
 import static com.example.smartair.Constants.PARENT_UID;
 
 public class AddMedicineActivity extends AppCompatActivity {
@@ -27,7 +28,7 @@ public class AddMedicineActivity extends AppCompatActivity {
     private EditText editName, editPurchaseDate, editExpiryDate, editTotalDose, editDosePerUse;
     private Spinner spinnerMedType;
     private FirebaseFirestore db;
-    private String parentUid;
+    private String parentUid, childUid;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +46,14 @@ public class AddMedicineActivity extends AppCompatActivity {
         parentUid = getIntent().getStringExtra(PARENT_UID);
         if (parentUid == null) {
             Toast.makeText(this, "Error: Parent UID missing!", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
+        // Get child UID from the Intent
+        childUid = getIntent().getStringExtra(CHILD_UID);
+        if (childUid == null) {
+            Toast.makeText(this, "Error: Child UID missing!", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -129,6 +138,7 @@ public class AddMedicineActivity extends AppCompatActivity {
         med.put("medType", type);
         med.put("dosePerUse", dosePerUse);
         med.put("parentUid", parentUid);
+        med.put("childUid", childUid);
 
         db.collection("medicine")
                 .add(med)

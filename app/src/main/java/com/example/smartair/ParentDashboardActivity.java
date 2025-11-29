@@ -47,11 +47,13 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private ArrayList<String> childNames = new ArrayList<>();
     private ArrayList<String> childIds = new ArrayList<>();
     private String parentUid;
+    private String activeChildUid = null;
 
     private int savedChildIndex = 0;
     private RecyclerView recyclerView;
     private MedicineAdapter adapter;
     private ArrayList<MedicineItem> medicineList;
+    private RescueUsageManager rescueManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,13 +85,10 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
         // All buttons
         initViews();
+        loadChildrenFromFirestore();
 
-        // realtime load medicines for this parent
-        loadMedicinesForParent();
-
-        // Add listener
-        RescueUsageManager rescueManager = new RescueUsageManager();
-        rescueManager.startListening(parentUid);
+        // Initialize rescueManager
+        rescueManager = new RescueUsageManager();
     }
     @Override
     protected void onResume() {
@@ -99,8 +98,10 @@ public class ParentDashboardActivity extends AppCompatActivity {
             parentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         }
 
-        loadMedicinesForParent();
         loadChildrenFromFirestore();
+        if (activeChildUid != null) {
+            loadMedicines(activeChildUid);
+        }
     }
     private void initViews() {
         spinnerChild = findViewById(R.id.spinnerChildren);
@@ -115,9 +116,29 @@ public class ParentDashboardActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 savedChildIndex = position;
+                if (rescueManager != null) {
+                    rescueManager.stop();
+                }
+                if (position <= 0) {
+                    activeChildUid = null;
+                    medicineList.clear();
+                    adapter.notifyDataSetChanged();
+                    return;
+                }
+
+                activeChildUid = childIds.get(position);
+                Log.d(TAG, "Selected child: " + activeChildUid);
+                loadMedicines(activeChildUid);
+                if (rescueManager != null) {
+                    rescueManager.startListening(parentUid, activeChildUid);
+                }
             }
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            public void onNothingSelected(AdapterView<?> parent) {
+                if (rescueManager != null) {
+                    rescueManager.stop();
+                }
+            }
         });
 
         // --- Logout ---
@@ -133,7 +154,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
         // --- Add Child ---
         buttonAddChild.setOnClickListener(v -> {
             Intent intent = new Intent(ParentDashboardActivity.this, AddChildActivity.class);
-            intent.putExtra(PARENT_UID, parentUid); // 使用常量
+            intent.putExtra(PARENT_UID, parentUid);
             startActivity(intent);
         });
 
@@ -166,17 +187,21 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
         // "Add medicine" button
         buttonAddMedicine.setOnClickListener(v -> {
+            if (activeChildUid == null) {
+                Toast.makeText(this, "Select a child first", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             Intent addMedIntent =
                     new Intent(ParentDashboardActivity.this, AddMedicineActivity.class);
             addMedIntent.putExtra(PARENT_UID, parentUid);
+            addMedIntent.putExtra(CHILD_UID, activeChildUid);
             startActivity(addMedIntent);
         });
-
 
     }
 
     private void loadChildrenFromFirestore() {
-
         db.collection("children")
                 .whereEqualTo("parentId", parentUid)
                 .get()
@@ -223,7 +248,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
     /**
      * Loads the list of medicines in real-time from Firebase.
      */
-    private void loadMedicinesForParent() {
+    private void loadMedicines(String childUid) {
         if (parentUid == null) {
             Log.e(TAG, "Cannot load medicine: parentUid STILL NULL.");
             return;
@@ -231,6 +256,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
         db.collection("medicine")
                 .whereEqualTo("parentUid", parentUid)
+                .whereEqualTo("childUid", childUid)
                 .addSnapshotListener((snap, e) -> {
                     if (e != null) {
                         Log.e(TAG, "Listen failed: ", e);

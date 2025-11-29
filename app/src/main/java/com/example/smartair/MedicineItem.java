@@ -14,6 +14,7 @@ public class MedicineItem {
     private int totalDose;
     private int remainingDose;
     private String parentUid;
+    private String childUid;
     private String medType;     // "Rescue" or "Controller"
     private int dosePerUse;    // For controller, rescue = always 1
 
@@ -26,6 +27,7 @@ public class MedicineItem {
     public int getTotalDose() { return totalDose; }
     public int getRemainingDose() { return remainingDose; }
     public String getParentUid() { return parentUid; }
+    public String getChildUid() { return childUid; }
     public String getMedType() { return medType; }
     public int getDosePerUse() { return dosePerUse; }
 

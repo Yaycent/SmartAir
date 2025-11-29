@@ -10,7 +10,6 @@
     tools:context=".ParentDashboardActivity"
     tools:ignore="ExtraText">
 
-    <!-- Top Left: Hi, Parent -->
     <TextView
         android:id="@+id/tvHiParent"
         android:layout_width="wrap_content"
@@ -22,7 +21,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Top Right: Child Dashboard link -->
     <TextView
         android:id="@+id/tvGoToChildDashboard"
         android:layout_width="wrap_content"
@@ -39,7 +37,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Manage Children Button (Left side) -->
     <Button
         android:id="@+id/buttonAddChild"
         style="@style/SmartAir.Button"
@@ -53,7 +50,6 @@
         app:layout_constraintStart_toStartOf="parent" />
 
 
-    <!-- Single Select Kid Button -->
     <Spinner
         android:id="@+id/spinnerChildren"
         android:layout_height="48dp"
@@ -70,7 +66,6 @@
         app:layout_constraintTop_toBottomOf="@id/tvHiParent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Medicine Inventory -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardMedicationInventory"
         android:layout_width="0dp"
@@ -79,11 +74,9 @@
         app:cardBackgroundColor="#EFEFEF"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buttonAddChild"
-        app:layout_constraintVertical_bias="0.0">
+        app:layout_constraintTop_toBottomOf="@id/buttonAddChild">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -133,7 +126,42 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </com.google.android.material.card.MaterialCardView>
-    <!-- Logout button (Bottom Right) -->
+
+    <Spinner
+        android:id="@+id/spinnerTimeRange"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardMedicationInventory" />
+
+    <TextView
+        android:id="@+id/textViewTodayPEFZone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:text="Zone: N/A"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        app:layout_constraintBottom_toBottomOf="@id/spinnerTimeRange"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/spinnerTimeRange" />
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chartPEF"
+        android:layout_width="0dp"
+        android:layout_height="300dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spinnerTimeRange"
+        app:layout_constraintVertical_bias="0.995" />
+
+
     <TextView
         android:id="@+id/tvLogout"
         android:layout_width="wrap_content"

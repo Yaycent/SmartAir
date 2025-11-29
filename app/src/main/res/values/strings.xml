@@ -16,7 +16,7 @@
     <string name="dateOfBirth_e_g_2020_01_01">DateOfBirth (e.g., 2020-01-01)</string>
     <string name="save">Save</string>
     <string name="childDashboard">Child</string>
-    <string name="rememberToFillAllBoxes">Remember to fill all boxes!</string>
+    <string name="rememberToFillAllBlanks">Remember to fill all blanks!</string>
     <string name="recordPEFButton">Record PEF</string>
     <string name="childPEF">ChildPEF</string>
     <string name="PEFTag">Before/After Medication</string>

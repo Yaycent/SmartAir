@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -155,6 +156,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
         tvLogout = findViewById(R.id.tvLogout);
         recyclerView = findViewById(R.id.recyclerMedicineInventory);
         Button buttonAddMedicine = findViewById(R.id.buttonAddMedicine);
+        ImageButton btnSettings = findViewById(R.id.btnSettings);
         spinnerRange = findViewById(R.id.spinnerTimeRange);
         chartPEF = findViewById(R.id.chartPEF);
         textViewTodayPEFZone = findViewById(R.id.textViewTodayPEFZone);
@@ -267,6 +269,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
             addMedIntent.putExtra(PARENT_UID, parentUid);
             addMedIntent.putExtra(CHILD_UID, activeChildUid);
             startActivity(addMedIntent);
+        });
+
+        // Setting
+        btnSettings.setOnClickListener(v -> {
+            Intent intent = new Intent(ParentDashboardActivity.this, SettingActivity.class);
+            startActivity(intent);
         });
 
         ArrayAdapter<String> rangeAdapter = new ArrayAdapter<>(

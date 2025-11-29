@@ -145,6 +145,24 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Setting button -->
+
+    <!-- Logout button (Bottom Right) -->
+
+    <ImageButton
+        android:id="@+id/btnSettings"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="592dp"
+        android:layout_marginEnd="296dp"
+        android:background="#F5A849"
+        android:contentDescription="Settings"
+        android:src="@drawable/ic_settings"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#333333" />
+
+
 
     <!-- PEF Section Header -->
     <Spinner

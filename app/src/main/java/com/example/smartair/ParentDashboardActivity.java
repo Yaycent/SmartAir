@@ -30,8 +30,10 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -60,6 +62,9 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private LineChart chartPEF;
 
     private TextView textViewTodayPEFZone;
+    private TextView tvRescueSummary;
+    private ListenerRegistration medicineListener;
+
 
 
 
@@ -113,6 +118,10 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
         // Initialize rescueManager
         rescueManager = new RescueUsageManager();
+
+        tvRescueSummary = findViewById(R.id.tvRescueSummary);
+
+
     }
     @Override
     protected void onResume() {
@@ -159,6 +168,8 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 if (rescueManager != null) {
                     rescueManager.startListening(parentUid, activeChildUid);
                 }
+                findRescueMedicineAndListen(activeChildUid);
+
 
                 if (position > 0) {
                     if (position < childIds.size()) {
@@ -437,7 +448,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
         LineData data = new LineData(set);
         chartPEF.setData(data);
 
-        // --- Y Axis ---
+        // Y Axis
         YAxis left = chartPEF.getAxisLeft();
         left.removeAllLimitLines();
 
@@ -498,7 +509,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 String dayStr = date.substring(3, 5);
                 int day = Integer.parseInt(dayStr);
 
-                // --------- 7 Days: Show all ---------
+                // 7 Days: Show all
                 if (!isThirtyDays) {
                     return date;
 
@@ -518,11 +529,11 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 }
 
 
-                // --------- 30 Days: show 5/10/15/20/25 ---------
+                //30 Days: show 5/10/15/20/25
                 if (day == 5 || day == 10 || day == 15 || day == 20 || day == 25)
                     return date;
 
-                // --------- Month end: auto detect ---------
+                // Month end: auto detect
                 Calendar c = Calendar.getInstance();
                 try {
                     c.setTime(fmtFull.parse(date));
@@ -635,5 +646,87 @@ public class ParentDashboardActivity extends AppCompatActivity {
         textViewTodayPEFZone.setText(zoneText);
         textViewTodayPEFZone.setTextColor(ContextCompat.getColor(this, textColor));
     }
+
+    private void listenToMedicineUpdates(String medicineId) {
+
+        medicineListener = db.collection("medicine")
+                .document(medicineId)
+                .addSnapshotListener((doc, e) -> {
+                    if (e != null || doc == null || !doc.exists()) return;
+
+                    // Weekly count
+                    Long weeklyLong = doc.getLong("weeklyRescueCount");
+                    int weeklyCount = (weeklyLong != null) ? weeklyLong.intValue() : 0;
+
+                    // Last time
+                    Timestamp ts = doc.getTimestamp("lastRescueTime");
+                    String lastUseString;
+
+                    if (ts != null) {
+                        lastUseString = formatRelative(ts.toDate());
+                    } else {
+                        lastUseString = "-";
+                    }
+
+                    String summary = "Weekly uses: " + weeklyCount
+                            + "   |   Last use: " + lastUseString;
+
+                    tvRescueSummary.setText(summary);
+                });
+    }
+
+    private String formatRelative(Date date) {
+        Calendar now = Calendar.getInstance();
+        Calendar target = Calendar.getInstance();
+        target.setTime(date);
+
+        SimpleDateFormat timeFmt = new SimpleDateFormat("h:mm a");
+        SimpleDateFormat fullFmt = new SimpleDateFormat("MMM d, h:mm a");
+
+        // Today check
+        if (now.get(Calendar.YEAR) == target.get(Calendar.YEAR) &&
+                now.get(Calendar.DAY_OF_YEAR) == target.get(Calendar.DAY_OF_YEAR)) {
+            return "Today " + timeFmt.format(date);
+        }
+
+        // Yesterday check
+        now.add(Calendar.DAY_OF_YEAR, -1);
+        if (now.get(Calendar.YEAR) == target.get(Calendar.YEAR) &&
+                now.get(Calendar.DAY_OF_YEAR) == target.get(Calendar.DAY_OF_YEAR)) {
+            return "Yesterday " + timeFmt.format(date);
+        }
+
+        // Other dates
+        return fullFmt.format(date);
+    }
+
+
+    private void findRescueMedicineAndListen(String childUid) {
+
+        if (medicineListener != null) {
+            medicineListener.remove();
+            medicineListener = null;
+        }
+
+        db.collection("medicine")
+                .whereEqualTo("childUid", childUid)
+                .whereEqualTo("parentUid", parentUid)
+                .whereEqualTo("medType", "Rescue")
+                .limit(1)
+                .get()
+                .addOnSuccessListener(snap -> {
+                    if (snap.isEmpty()) {
+                        tvRescueSummary.setText("No rescue medicine found");
+                        return;
+                    }
+
+                    String medId = snap.getDocuments().get(0).getId();
+                    Log.d(TAG, "Found rescue medicine: " + medId);
+
+                    listenToMedicineUpdates(medId);
+                });
+    }
+
+
 
 }

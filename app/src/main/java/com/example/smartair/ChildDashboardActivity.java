@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.util.Log;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 import android.widget.TextView;
@@ -19,18 +18,26 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 import static com.example.smartair.Constants.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ChildDashboardActivity extends AppCompatActivity {  
     private static final String TAG = "ChildDashboardActivity";
 
+    // Firestore
+    private FirebaseFirestore db;
+
     // Data Variables
     private String childName;
     private String childUid;
     private String parentUid;
+
+    // UI
+    private TextView tvStreak;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +49,9 @@ public class ChildDashboardActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // Firestore instance
+        db = FirebaseFirestore.getInstance();
 
         // Get Intent
         Intent intent = getIntent();
@@ -75,6 +85,19 @@ public class ChildDashboardActivity extends AppCompatActivity {
         if (childName != null && hiText != null) {
             hiText.setText("Hi, " + childName);
         }
+
+        // Streak
+        tvStreak = findViewById(R.id.tvDaysCount);
+
+        if (tvStreak == null) {
+            Log.e("STREAK", "tvDaysCount NOT FOUND!");
+        } else {
+            Log.d("STREAK", "tvDaysCount FOUND.");
+        }
+
+        // Load streak Data
+        loadControllerStreak();
+
     }
 
     private void initButtons() {
@@ -114,6 +137,56 @@ public class ChildDashboardActivity extends AppCompatActivity {
         imageButtonBackChildDashboard.setOnClickListener(v -> finish());
     }
 
+    // Streak section
+    private void loadControllerStreak() {
+        if (childUid == null || parentUid == null) {
+            Toast.makeText(this, "Missing CHILD_UID or PARENT_UID. ", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        db.collection("controllerLogs")
+                .whereEqualTo("childUid", childUid)
+                .whereEqualTo("parentUid", parentUid)
+                .orderBy("date", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(snap -> {
+
+
+                    if (snap.isEmpty()) {
+                        tvStreak.setText(getString(R.string.streak_start));
+                        return;
+                    }
+
+                    ArrayList<Long> uniqueDays = new ArrayList<>();
+                    for (DocumentSnapshot d : snap.getDocuments()) {
+                        Long ts = d.getLong("date");
+                        Log.d("STREAK", "date raw = " + ts);
+
+                        if (ts == null) continue;
+
+                        long dayIndex = ts / (24L * 60 * 60 * 1000);
+
+                        if (!uniqueDays.contains(dayIndex)) {
+                            uniqueDays.add(dayIndex);
+                        }
+                    }
+
+                    int streak = uniqueDays.size();
+
+                    if (streak == 0) {
+                        tvStreak.setText(getString(R.string.streak_start));
+                    } else if (streak == 1) {
+                        tvStreak.setText(getString(R.string.streak_day1));
+                    } else {
+                        tvStreak.setText(getString(R.string.streak_on_a_roll, streak));
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("STREAK", "Firestore ERROR: " + e.getMessage());
+                    tvStreak.setText(getString(R.string.streak_start));
+                });
+    }
+
     // Rescue
     private void openEmergencyMedicationScreen() {
 
@@ -122,7 +195,6 @@ public class ChildDashboardActivity extends AppCompatActivity {
             return;
         }
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         db.collection("medicine")
                 .whereEqualTo("parentUid", parentUid)
@@ -155,8 +227,6 @@ public class ChildDashboardActivity extends AppCompatActivity {
 
     // Controller
     private void handleControllerCheck() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
         db.collection("medicine")
                 .whereEqualTo("parentUid", parentUid)
                 .whereEqualTo("childUid", childUid)
@@ -173,6 +243,9 @@ public class ChildDashboardActivity extends AppCompatActivity {
                     for (DocumentSnapshot med : meds) {
                         deductMedicine(med);
                     }
+
+                    logControllerUse();
+                    loadControllerStreak(); // refresh streak after check
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to load medication info: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -201,7 +274,6 @@ public class ChildDashboardActivity extends AppCompatActivity {
         int newDose = currentDose - dosePerUse;
 
         // update firebase
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("medicine").document(docId)
                 .update("remainingDose", newDose)
                 .addOnSuccessListener(aVoid -> {
@@ -213,4 +285,11 @@ public class ChildDashboardActivity extends AppCompatActivity {
                 });
     }
 
+    private void logControllerUse() {
+        long today = System.currentTimeMillis();
+
+        db.collection("controllerLogs")
+                .add(new ControllerLog(parentUid, childUid, today))
+                .addOnSuccessListener(d -> Log.d(TAG, "Logged controller use"));
+    }
 }

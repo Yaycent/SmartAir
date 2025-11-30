@@ -4,9 +4,11 @@ import android.os.Bundle;
 import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,7 +35,7 @@ public class RecordPEFFeature extends AppCompatActivity {
     private Double personalBest;
 
     private EditText editTextChildPEF;
-    private EditText editTextPEFTag;
+    private Spinner spinnerZoneTag;
     private TextView textViewZone;
 
     @Override
@@ -68,7 +70,7 @@ public class RecordPEFFeature extends AppCompatActivity {
 
         // connect UI elements
         editTextChildPEF = findViewById(R.id.editTextChildPEF);
-        editTextPEFTag = findViewById(R.id.editTextPEFTag);
+        spinnerZoneTag = findViewById(R.id.spinnerZoneTag);
         textViewZone = findViewById(R.id.textViewZone);
         Button buttonRecordPEF = findViewById(R.id.buttonRecordPEF);
         ImageButton imageButtonBackRecordPEF = findViewById(R.id.imageButtonBackRecordPEF);
@@ -79,6 +81,7 @@ public class RecordPEFFeature extends AppCompatActivity {
 
         buttonRecordPEF.setOnClickListener(v -> recordChildPEF());
         imageButtonBackRecordPEF.setOnClickListener(v -> finish());
+        setUpZoneTagSpinners();
     }
 
     private void retrieveChildPB(String childId) {
@@ -113,6 +116,18 @@ public class RecordPEFFeature extends AppCompatActivity {
                     finish();
                 });
     }
+
+    private void setUpZoneTagSpinners() {
+        // Adapter loads choices from string.xml
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                this,
+                R.array.zone_tag_options,
+                android.R.layout.simple_spinner_item
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerZoneTag.setAdapter(adapter);
+    }
+
     private void recordChildPEF() {
         if (personalBest == null){
             Toast.makeText(this, "Personal Best is not loaded. Please try again.", Toast.LENGTH_SHORT).show();
@@ -120,7 +135,7 @@ public class RecordPEFFeature extends AppCompatActivity {
         }
 
         String childPEF = editTextChildPEF.getText().toString().trim();
-        String zoneTag = editTextPEFTag.getText().toString().trim();
+        String zoneTag = spinnerZoneTag.getSelectedItem().toString();
 
         if (childPEF.isEmpty()) {
             Toast.makeText(this, "PEF is empty. Please enter a PEF value.", Toast.LENGTH_SHORT).show();

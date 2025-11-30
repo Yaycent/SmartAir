@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,8 +63,12 @@ public class MainActivity extends AppCompatActivity {
         editTextEmail = findViewById(R.id.editTextEmail);
         editTextPassword = findViewById(R.id.editTextPassword);
         Button buttonLogin = findViewById(R.id.buttonLogin);
+        ImageButton imageButtonBackMain = findViewById(R.id.imageButtonBackMain);
         TextView btnGoToRegister = findViewById(R.id.btnGoToRegister);
         TextView btnForgotPassword = findViewById(R.id.btnForgotPassword);
+
+        // back button
+        imageButtonBackMain.setOnClickListener(v->finish());
 
         // login
         buttonLogin.setOnClickListener(v -> {

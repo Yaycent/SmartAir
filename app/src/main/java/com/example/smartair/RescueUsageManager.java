@@ -112,6 +112,17 @@ public class RescueUsageManager {
                                 Log.d(TAG, "[RescueUsageManager] Applied -"
                                         + actualDecrease + " to " + medicineId);
 
+                                //update lastRescueTime
+                                db.collection("medicine")
+                                        .document(medicineId)
+                                        .update("lastRescueTime", FieldValue.serverTimestamp());
+
+                                //weeklyRescueCount
+                                db.collection("medicine")
+                                        .document(medicineId)
+                                        .update("weeklyRescueCount", FieldValue.increment(1));
+
+
                                 // Mark log as processed
                                 db.collection("medicationLogs")
                                         .document(logId)

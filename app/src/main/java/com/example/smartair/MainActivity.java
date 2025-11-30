@@ -21,12 +21,15 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import static com.example.smartair.Constants.*;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private String selectedRole;
 
     private EditText editTextEmail;
     private EditText editTextPassword;
@@ -36,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
@@ -45,11 +49,12 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        selectedRole = getIntent().getStringExtra(KEY_ROLE);
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
         if (currentUser != null) {
             // Already logged in: Jump to the homepage
-            navigateToDashboard(currentUser);
+            checkRoleAndRedirect(currentUser.getUid());
             return;
         }
 
@@ -68,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         // RegisterPage
         btnGoToRegister.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
+            intent.putExtra(KEY_ROLE, selectedRole);
             startActivity(intent);
         });
 
@@ -109,11 +115,11 @@ public class MainActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             // Login successful
                             FirebaseUser user = mAuth.getCurrentUser();
-                            Toast.makeText(MainActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
 
-                            // jump to the dashboard.
-                            assert user != null;
-                            navigateToDashboard(user);
+                            // check role and jump to the dashboard.
+                            if (user != null) {
+                                checkRoleAndRedirect(user.getUid());
+                            }
 
                         } else {
                             // login fail
@@ -125,14 +131,54 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void navigateToDashboard(FirebaseUser user) {
-        // jump to the dashboard
-        Intent intent = new Intent(MainActivity.this, ParentDashboardActivity.class);
+    private void checkRoleAndRedirect(String uid) {
+        db.collection("users").document(uid).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    String actualRole;
 
-        // pass parent id
-        intent.putExtra(PARENT_UID, user.getUid());
+                    // get role
+                    if (documentSnapshot.exists() && documentSnapshot.contains("role")) {
+                        // new user
+                        actualRole = documentSnapshot.getString("role");
+                    } else {
+                        // old user default to parent
+                        Log.d(TAG, "Old user or no role detected, defaulting to Parent.");
+                        actualRole = ROLE_PARENT;
+                    }
 
-        startActivity(intent);
-        finish(); // close MainActivity
+                    // check if right role to right account
+                    if (selectedRole != null && !selectedRole.equals(actualRole)) {
+
+                        // wrong role
+                        Toast.makeText(MainActivity.this,
+                                "Access Denied: This account is registered as a " + actualRole,
+                                Toast.LENGTH_LONG).show();
+
+                        // Forced logout
+                        mAuth.signOut();
+                        return;
+                    }
+
+                    // right role
+                    Toast.makeText(MainActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                    Intent intent;
+                    // if provider
+                    if (ROLE_DOCTOR.equals(actualRole)) {
+                        intent = new Intent(MainActivity.this, ProviderDashboardActivity.class);
+                    } else {
+                        // Default to parent
+                        intent = new Intent(MainActivity.this, ParentDashboardActivity.class);
+                    }
+
+                    intent.putExtra(PARENT_UID, uid);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(MainActivity.this, "Login Check Failed: " +
+                            e.getMessage(), Toast.LENGTH_SHORT).show();
+                    mAuth.signOut();
+                });
     }
 }

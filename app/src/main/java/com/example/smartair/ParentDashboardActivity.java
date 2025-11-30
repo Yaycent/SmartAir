@@ -190,7 +190,8 @@ public class ParentDashboardActivity extends AppCompatActivity {
         // Logout
         tvLogout.setOnClickListener(v -> {
             auth.signOut();
-            Intent intent = new Intent(ParentDashboardActivity.this, MainActivity.class);
+            Intent intent = new Intent(ParentDashboardActivity.this,
+                    RoleSelectionActivity.class);
             // Clear the task stack to prevent returning by pressing the back button
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);

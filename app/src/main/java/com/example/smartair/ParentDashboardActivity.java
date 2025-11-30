@@ -1,7 +1,10 @@
 package com.example.smartair;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,6 +17,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -32,10 +36,14 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
+
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -43,6 +51,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -121,6 +130,9 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
         tvRescueSummary = findViewById(R.id.tvRescueSummary);
 
+        // FCM
+        askNotificationPermission();
+        saveFcmToken();
 
     }
     @Override
@@ -548,9 +560,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
             }
         });
 
-
-
-
         chartPEF.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
@@ -725,6 +734,51 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     Log.d(TAG, "Found rescue medicine: " + medId);
 
                     listenToMedicineUpdates(medId);
+                });
+    }
+
+    // FCM
+    private void askNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+            }
+        }
+    }
+
+    private void saveFcmToken() {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                        return;
+                    }
+
+                    String token = task.getResult();
+                    Log.d(TAG, "FCM Token: " + token);
+
+                    // update token
+                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+                    if (user != null) {
+                        String uid = user.getUid();
+                        String email = user.getEmail();
+
+                        Map<String, Object> userData = new HashMap<>();
+                        userData.put("fcmToken", token);
+                        userData.put("role", "Parent"); // for old user
+                        userData.put("email", email);
+                        userData.put("uid", uid);
+
+                        FirebaseFirestore.getInstance().collection("users").document(uid)
+                                .set(userData, SetOptions.merge())
+                                .addOnSuccessListener(aVoid -> Log.d(TAG,
+                                        "User data & Token saved successfully"))
+                                .addOnFailureListener(e -> Log.e(TAG,
+                                        "Error saving user data", e));
+                    }
                 });
     }
 

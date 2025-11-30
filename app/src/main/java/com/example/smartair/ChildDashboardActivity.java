@@ -153,7 +153,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
 
 
                     if (snap.isEmpty()) {
-                        tvStreak.setText("Start your streak!");
+                        tvStreak.setText(getString(R.string.streak_start));
                         return;
                     }
 
@@ -174,16 +174,16 @@ public class ChildDashboardActivity extends AppCompatActivity {
                     int streak = uniqueDays.size();
 
                     if (streak == 0) {
-                        tvStreak.setText("Start your streak!");
+                        tvStreak.setText(getString(R.string.streak_start));
                     } else if (streak == 1) {
-                        tvStreak.setText("1st Day Complete!");
+                        tvStreak.setText(getString(R.string.streak_day1));
                     } else {
-                        tvStreak.setText("On a roll! 🔥 " + streak + " Days");
+                        tvStreak.setText(getString(R.string.streak_on_a_roll, streak));
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e("STREAK", "Firestore ERROR: " + e.getMessage());
-                    tvStreak.setText("Start your streak!");
+                    tvStreak.setText(getString(R.string.streak_start));
                 });
     }
 

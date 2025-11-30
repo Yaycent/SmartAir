@@ -80,4 +80,8 @@
     <string name="needHelp">Need help? Click me!</string>
     <string name="techniqueHelper">How to use your asthma inhaler with a spacer and mask</string>
 
+    <string name="streak_start">Start your streak!</string>
+    <string name="streak_day1">1st Day Complete!</string>
+    <string name="streak_on_a_roll">On a roll! 🔥 %1$d Days</string>
+
 </resources>

@@ -669,7 +669,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
                         lastUseString = "-";
                     }
 
-                    String summary = "Weekly uses: " + weeklyCount
+                    String summary = "Rescue | Weekly uses: " + weeklyCount
                             + "   |   Last use: " + lastUseString;
 
                     tvRescueSummary.setText(summary);

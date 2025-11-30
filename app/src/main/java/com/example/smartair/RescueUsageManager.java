@@ -117,7 +117,7 @@ public class RescueUsageManager {
                                         .document(medicineId)
                                         .update("lastRescueTime", FieldValue.serverTimestamp());
 
-                                //weeklyRescueCount +1
+                                //weeklyRescueCount
                                 db.collection("medicine")
                                         .document(medicineId)
                                         .update("weeklyRescueCount", FieldValue.increment(1));

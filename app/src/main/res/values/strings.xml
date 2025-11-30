@@ -80,4 +80,11 @@
     <string name="needHelp">Need help? Click me!</string>
     <string name="techniqueHelper">How to use your asthma inhaler with a spacer and mask</string>
 
+    <string name="beforeMed">Before Medication</string>
+    <string name="afterMed">After Medication</string>
+    <string-array name="zone_tag_options">
+        <item>@string/beforeMed</item>
+        <item>@string/afterMed</item>
+    </string-array>
+
 </resources>

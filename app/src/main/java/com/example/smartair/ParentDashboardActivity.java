@@ -67,6 +67,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private TextView tvGoToChildDashboard;
     private TextView tvLogout;
     private Button buttonMedicineCabinet;
+    private Button buttonSymptomHistory;
 
     private LineChart chartPEF;
 
@@ -158,6 +159,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
         spinnerRange = findViewById(R.id.spinnerTimeRange);
         chartPEF = findViewById(R.id.chartPEF);
         textViewTodayPEFZone = findViewById(R.id.textViewTodayPEFZone);
+        buttonSymptomHistory = findViewById(R.id.buttonSymptomHistory);
 
         // Spinner
         spinnerChild.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -267,6 +269,29 @@ public class ParentDashboardActivity extends AppCompatActivity {
             addMedIntent.putExtra(PARENT_UID, parentUid);
             addMedIntent.putExtra(CHILD_UID, activeChildUid);
             startActivity(addMedIntent);
+        });
+
+        buttonSymptomHistory.setOnClickListener(v -> {
+            int index = spinnerChild.getSelectedItemPosition();
+
+            Toast.makeText(ParentDashboardActivity.this,
+                    "Symptom History clicked, index = " + index, Toast.LENGTH_SHORT).show();
+
+            // 0 is "Select Child"
+            if (index <= 0) {
+                Toast.makeText(ParentDashboardActivity.this,
+                        "Please select a child first.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            String selectedChildUid = childIds.get(index);
+            String selectedChildName = childNames.get(index);
+
+            Intent intent = new Intent(ParentDashboardActivity.this, SymptomHistoryActivity.class);
+            intent.putExtra(CHILD_UID, selectedChildUid);
+            intent.putExtra(CHILD_NAME, selectedChildName);
+            intent.putExtra(PARENT_UID, parentUid);
+            startActivity(intent);
         });
 
         ArrayAdapter<String> rangeAdapter = new ArrayAdapter<>(

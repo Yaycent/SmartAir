@@ -2,10 +2,14 @@ package com.example.smartair;
 
 import android.util.Log;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RescueUsageManager {
     private static final String TAG = "RescueUsageManager";
@@ -14,6 +18,8 @@ public class RescueUsageManager {
     public RescueUsageManager() {
         this.db = FirebaseFirestore.getInstance();
     }
+    private String parentUidGlobal;
+    private String childUidGlobal;
 
     /**
      * Stop previous listeners.
@@ -39,6 +45,10 @@ public class RescueUsageManager {
                     + " childUid=" + childUid);
             return;
         }
+
+        this.parentUidGlobal = parentUid;
+        this.childUidGlobal = childUid;
+
 
         Log.d(TAG, "Start listening for Rescue logs. parent=" + parentUid
                 + " child=" + childUid);
@@ -74,6 +84,8 @@ public class RescueUsageManager {
                                 + doseCount + " from medicine " + medicineId);
 
                         decreaseDose(medicineId, doseCount, logId);
+
+                        checkOveruseAlerts();
                     }
                 });
     }
@@ -133,4 +145,49 @@ public class RescueUsageManager {
                 });
 
     }
+
+    /**
+     * Checks if Rescue usage in the last 3 hours exceeds the threshold (3 times)
+     * and triggers ParentAlertHelper if necessary.
+     */
+    private void checkOveruseAlerts() {
+        if (parentUidGlobal == null || childUidGlobal == null) {
+            Log.e(TAG, "Cannot check alerts: UIDs are null.");
+            return;
+        }
+
+        long threeHoursAgo = System.currentTimeMillis() - 3 * 60 * 60 * 1000;
+
+        Timestamp threeHoursAgoTS =
+                new Timestamp(new java.util.Date(threeHoursAgo));
+
+        db.collection("medicationLogs")
+                .whereEqualTo("parentUid", parentUidGlobal)
+                .whereEqualTo("childUid", childUidGlobal)
+                .whereEqualTo("type", "Rescue")
+                .whereGreaterThan("timestamp", threeHoursAgoTS)
+                .get()
+                .addOnSuccessListener(rescueSnap -> {
+
+                    int count = rescueSnap.size();
+                    Log.d(TAG, "Rescue in last 3 hours (Current Check) = " + count);
+
+                    if (count >= 3) {
+                        String childName = null;
+                        if (!rescueSnap.isEmpty()) {
+                            childName = rescueSnap.getDocuments().get(0).getString("childName");
+                        }
+
+                        ParentAlertHelper.alertRescueOveruse(
+                                parentUidGlobal,
+                                childUidGlobal,
+                                childName,
+                                count
+                        );
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to run overuse check", e));
+    }
+
+
 }

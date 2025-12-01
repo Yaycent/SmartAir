@@ -32,6 +32,7 @@ public class RecordPEFFeature extends AppCompatActivity {
     private FirebaseFirestore db;
     private String childName;
     private String childUid;
+    private String parentUid;
     private Double personalBest;
 
     private EditText editTextChildPEF;
@@ -56,6 +57,7 @@ public class RecordPEFFeature extends AppCompatActivity {
         Intent intent = getIntent();
         childUid = intent.getStringExtra(CHILD_UID);
         childName = intent.getStringExtra(CHILD_NAME);
+        parentUid = intent.getStringExtra(PARENT_UID);
 
         // checking childName and childId
         if (childName == null || childUid == null) {
@@ -207,8 +209,12 @@ public class RecordPEFFeature extends AppCompatActivity {
         db.collection("pefLogs")
                 .add(logData)
                 .addOnSuccessListener(documentReference -> {
+                    if (zone.equals("Red")) {
+                        ParentAlertHelper.alertPEFRed(parentUid, childUid, childName, PEFValue);
+                    }
                     Log.d(TAG, "PEF Log saved: " + documentReference.getId());
                     Toast.makeText(RecordPEFFeature.this, "Saved successfully!", Toast.LENGTH_SHORT).show();
+
                     new Handler().postDelayed(this::finish, 2500);
                 })
                 .addOnFailureListener(e -> {

@@ -88,7 +88,13 @@
     </string-array>
 
     <string name="streak_start">Start your streak!</string>
-    <string name="streak_day1">1st Day Complete!</string>
+    <string name="streak_day1">1st Day Completed!</string>
     <string name="streak_on_a_roll">On a roll! 🔥 %1$d Days</string>
+
+    <string name="perfectControllerWeekBadge"> 🗓️ First Perfect Controller Week</string>
+    <string name="techniqueSessionBadge"> 💪 10 High-quality Technique Sessions</string>
+    <string name="lowRescueBadge"> 📉 Low Rescue Month</string>
+    <string name="trophy"> 🏆 </string>
+    <string name="yourBadge">Your Badge</string>
 
 </resources>

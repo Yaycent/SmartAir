@@ -84,10 +84,10 @@ public class RecordPEFFeature extends AppCompatActivity {
         setUpZoneTagSpinners();
     }
 
-    private void retrieveChildPB(String childId) {
-        // query the database to find PB based on childId
+    private void retrieveChildPB(String childUid) {
+        // query the database to find PB based on childUid
         db.collection("children")
-                .document(childId)
+                .document(childUid)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot != null && documentSnapshot.exists()) {

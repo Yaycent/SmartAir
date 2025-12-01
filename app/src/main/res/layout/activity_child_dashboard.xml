@@ -15,15 +15,16 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="90dp"
+        android:layout_marginTop="45dp"
         android:layout_marginEnd="90dp"
         android:text="@string/recordPEFButton"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.793" />
+        app:layout_constraintTop_toBottomOf="@+id/buttonCheckin"
+        app:layout_constraintVertical_bias="0.107" />
 
     <TextView
         android:id="@+id/childDashboardTitle"
@@ -40,37 +41,37 @@
         app:layout_constraintVertical_bias="0.05"
         app:layout_constraintVertical_chainStyle="packed" />
 
+
     <Button
         android:id="@+id/buttonRescue"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="90dp"
-        android:layout_marginTop="32dp"
 
         android:layout_marginEnd="90dp"
+        android:layout_marginBottom="270dp"
         android:text="@string/rescue_med"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/childDashboardTitle" />
-
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardController"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:layout_marginHorizontal="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="600dp"
+
         app:cardBackgroundColor="#B8D3F5"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
-
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonRescue"
-        app:layout_constraintVertical_bias="0.122">
+        app:layout_constraintStart_toStartOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -108,7 +109,7 @@
                 android:minHeight="0dp"
                 android:paddingHorizontal="24dp"
                 android:paddingVertical="8dp"
-                android:text="Check"
+                android:text="Check-in"
                 android:textAllCaps="false"
                 android:textColor="@android:color/black"
                 android:textSize="16sp"
@@ -121,18 +122,72 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardBadge"
+        android:layout_width="0dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="430dp"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tvBadge"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:layout_marginBottom="30dp"
+                android:text="@string/yourBadge"
+                android:textAlignment="center"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/textView6"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="45dp"
+                android:text="@string/trophy"
+                android:textAlignment="center"
+                android:textSize="17sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
     <Button
         android:id="@+id/buttonCheckin"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="90dp"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="50dp"
         android:layout_marginEnd="90dp"
         android:text="Daily check-in"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardController" />
+        app:layout_constraintTop_toBottomOf="@+id/buttonRescue" />
 
     <TextView
         android:id="@+id/tvHiChild"
@@ -157,6 +212,37 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_back_white" />
+
+    <TextView
+        android:id="@+id/tvCheckBadges"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="230dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="388dp"
+        android:padding="8dp"
+        android:text=" Check your badges collection"
+        android:textColor="#757575"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cardBadge" />
+
+    <TextView
+        android:id="@+id/textView7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Badge"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/cardBadge"
+        app:layout_constraintEnd_toEndOf="@+id/cardBadge"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/cardBadge"
+        app:layout_constraintTop_toBottomOf="@+id/cardController"
+        app:layout_constraintVertical_bias="1.0" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

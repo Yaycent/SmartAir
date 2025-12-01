@@ -2,6 +2,7 @@ package com.example.smartair;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -16,6 +17,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -34,6 +36,7 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
 
     private String childUid;    // from ChildDashboardActivity
     private String rescueMedId;
+    private String childName;
 
     private FirebaseFirestore db;
 
@@ -52,7 +55,7 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
         childUid = intent.getStringExtra(CHILD_UID);
         parentUid = intent.getStringExtra(PARENT_UID);
         rescueMedId = intent.getStringExtra(MEDICINE_ID);
-
+        childName = intent.getStringExtra(CHILD_NAME);
 
         if (childUid == null || rescueMedId == null || parentUid == null) {
             Toast.makeText(this, "Missing medication info!", Toast.LENGTH_SHORT).show();
@@ -178,9 +181,11 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
         // Build a log object to upload to Firestore
         Map<String, Object> log = new HashMap<>();
         log.put("childUid", childUid);
+        log.put("childName", childName);
         log.put("parentUid", parentUid);
         log.put("medicineId", rescueMedId);
-        log.put("timestamp", FieldValue.serverTimestamp());
+        // change time comparison method System.currentTimeMillis() to  Timestamp.now()
+        log.put("timestamp", Timestamp.now());
         log.put("type", "Rescue");
         log.put("preFeeling", preFeeling);
         log.put("postFeeling", postFeeling);
@@ -193,6 +198,13 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
                 .addOnSuccessListener(ref -> {
                     Toast.makeText(this, "Medication log submitted", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Log added: " + ref.getId());
+                    // add new
+                    RescueUsageManager rm = new RescueUsageManager();
+                    rm.startListening(parentUid, childUid);
+                    if ("Worse".equalsIgnoreCase(postFeeling) && parentUid != null) {
+                        ParentAlertHelper.alertRescueWorse(parentUid, childUid, childName, postFeeling);
+                    }
+                    checkRescueOveruseForChild();
                     finish();
                 })
                 .addOnFailureListener(e -> {
@@ -200,4 +212,29 @@ public class EmergencyMedicationActivity extends AppCompatActivity {
                     Toast.makeText(this, "Failed to save: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
+
+// add new
+    private void checkRescueOveruseForChild() {
+
+        long now = System.currentTimeMillis();
+        long threeHoursAgo = now - 3L * 60 * 60 * 1000;
+
+        db.collection("medicationLogs")
+                .whereEqualTo("childUid", childUid)
+                .whereEqualTo("type", "Rescue")
+                .whereGreaterThan("timestamp", threeHoursAgo)   // 用 long
+                .get()
+                .addOnSuccessListener(snap -> {
+                    int count = snap.size();
+
+                    Log.d(TAG, "Rescue in last 3 hours = " + count);
+
+                    if (count >= 3) {
+                        ParentAlertHelper.alertRescueOveruse(parentUid, childUid, childName, count);
+                    }
+                });
+    }
+
+
 }

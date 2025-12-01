@@ -107,6 +107,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
             Intent intent = new Intent(ChildDashboardActivity.this, RecordPEFFeature.class);
             intent.putExtra(CHILD_UID, childUid);
             intent.putExtra(CHILD_NAME, childName);
+            intent.putExtra(PARENT_UID, parentUid);
             startActivity(intent);
         });
 
@@ -224,6 +225,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
                     Intent intent = new Intent(ChildDashboardActivity.this, EmergencyMedicationActivity.class);
                     intent.putExtra(CHILD_UID, childUid);
                     intent.putExtra(PARENT_UID, parentUid);
+                    intent.putExtra(CHILD_NAME, childName);
                     intent.putExtra(MEDICINE_ID, rescueMedId);
                     intent.putExtra(MED_TYPE, "Rescue");
 

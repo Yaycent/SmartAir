@@ -17,7 +17,7 @@ public class MedicineItem {
     private String childUid;
     private String medType;     // "Rescue" or "Controller"
     private int dosePerUse;    // For controller, rescue = always 1
-
+    private String childName;
     public MedicineItem() {}  // Firestore requirement
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -39,7 +39,8 @@ public class MedicineItem {
     public void setParentUid(String parentUid) { this.parentUid = parentUid; }
     public void setMedType(String medType) { this.medType = medType; }
     public void setDosePerUse(int dosePerUse) { this.dosePerUse = dosePerUse; }
-
+    public String getChildName() { return childName; }
+    public void setChildName(String childName) { this.childName = childName; }
     public double getPercentage() {
         if (totalDose == 0) return 0;
         return (remainingDose * 1.0 / totalDose) * 100;

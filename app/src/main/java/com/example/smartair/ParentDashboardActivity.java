@@ -75,6 +75,11 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private TextView tvRescueSummary;
     private ListenerRegistration medicineListener;
 
+
+
+
+
+
     // Firebase
     private FirebaseFirestore db;
     private FirebaseAuth auth;
@@ -83,7 +88,10 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private ArrayList<String> childNames = new ArrayList<>();
     private ArrayList<String> childIds = new ArrayList<>();
     private String parentUid;
+
+
     private String activeChildUid = null;
+    private String activeChildName = null;
 
     private int savedChildIndex = 0;
     private RecyclerView recyclerView;
@@ -91,6 +99,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private ArrayList<MedicineItem> medicineList;
     private RescueUsageManager rescueManager;
 
+    private ListenerRegistration singleAlertListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,9 +138,9 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
         tvRescueSummary = findViewById(R.id.tvRescueSummary);
 
-        // FCM
-        askNotificationPermission();
-        saveFcmToken();
+
+
+
 
         // sos setting
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
@@ -151,6 +160,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
         }
 
         loadChildrenFromFirestore();
+        listenForSingleAlert();
         if (activeChildUid != null) {
             loadMedicines(activeChildUid);
         }
@@ -183,6 +193,8 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 }
 
                 activeChildUid = childIds.get(position);
+                activeChildName = childNames.get(position);
+
                 Log.d(TAG, "Selected child: " + activeChildUid);
                 loadMedicines(activeChildUid);
                 if (rescueManager != null) {
@@ -272,8 +284,13 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
             Intent addMedIntent =
                     new Intent(ParentDashboardActivity.this, AddMedicineActivity.class);
+            if (activeChildName == null) {
+                Toast.makeText(this, "Child name still loading... try again", Toast.LENGTH_SHORT).show();
+                return;
+            }
             addMedIntent.putExtra(PARENT_UID, parentUid);
             addMedIntent.putExtra(CHILD_UID, activeChildUid);
+            addMedIntent.putExtra(CHILD_NAME, activeChildName);
             startActivity(addMedIntent);
         });
 
@@ -379,9 +396,39 @@ public class ParentDashboardActivity extends AppCompatActivity {
                             medicineList.add(item);
                         }
                     });
+                    // NEW
+                    checkMedicineAlerts();
                     adapter.notifyDataSetChanged();
                 });
     }
+//ADD NEW
+    private void checkMedicineAlerts() {
+        if (medicineList == null || medicineList.isEmpty()) return;
+        if (parentUid == null) return;
+
+        for (MedicineItem item : medicineList) {
+            if (item == null) continue;
+
+            boolean low = item.getPercentage() <= 20;
+            boolean expiringSoon = item.isExpiringSoon();
+
+            if (!low && !expiringSoon) continue;
+
+            // 如果你的 medicine 有 childUid，可以用这个；否则可以传 null 或默认孩子名
+            String childUidForMed = item.getChildUid();
+            String childNameForMed = item.getChildName();   // 如果你在 medicine 里有 childName 字段，也可以加 getter
+
+            ParentAlertHelper.alertMedicineLowOrExpired(
+                    parentUid,
+                    childUidForMed,
+                    childNameForMed,
+                    item.getName(),
+                    low,
+                    expiringSoon
+            );
+        }
+    }
+
 
     private void loadPEFData(String childId, int days) {
 
@@ -751,51 +798,70 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 });
     }
 
-    // FCM
-    private void askNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= 33) {
-            if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
-            }
+
+    /**
+     * Listens for the most recent unprocessed alert for this parent.
+     * This listener always retrieves only ONE document:
+     * - the latest alert (timestamp DESC)
+     * - where processed = false
+     * When a new alert arrives, a popup dialog is shown to the parent.
+     */
+
+    private void listenForSingleAlert() {
+
+        if (singleAlertListener != null) {
+            singleAlertListener.remove();
         }
-    }
 
-    private void saveFcmToken() {
-        FirebaseMessaging.getInstance().getToken()
-                .addOnCompleteListener(task -> {
-                    if (!task.isSuccessful()) {
-                        Log.w(TAG, "Fetching FCM registration token failed", task.getException());
-                        return;
-                    }
+        singleAlertListener = db.collection("parentAlerts")
+                .whereEqualTo("parentUid", parentUid)
+                .whereEqualTo("processed", false)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(1)
+                .addSnapshotListener((snap, e) -> {
 
-                    String token = task.getResult();
-                    Log.d(TAG, "FCM Token: " + token);
+                    if (e != null || snap == null) return;
+                    if (snap.isEmpty()) return;
 
-                    // update token
-                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                    // Only one unprocessed alert
+                    var doc = snap.getDocuments().get(0);
 
-                    if (user != null) {
-                        String uid = user.getUid();
-                        String email = user.getEmail();
+                    String alertId = doc.getId();
+                    String childName = doc.getString("childName");
+                    String message = doc.getString("message");
 
-                        Map<String, Object> userData = new HashMap<>();
-                        userData.put("fcmToken", token);
-                        userData.put("role", "Parent"); // for old user
-                        userData.put("email", email);
-                        userData.put("uid", uid);
+                    if (childName == null) childName = "Your child";
 
-                        FirebaseFirestore.getInstance().collection("users").document(uid)
-                                .set(userData, SetOptions.merge())
-                                .addOnSuccessListener(aVoid -> Log.d(TAG,
-                                        "User data & Token saved successfully"))
-                                .addOnFailureListener(e -> Log.e(TAG,
-                                        "Error saving user data", e));
-                    }
+                    // Show popup
+                    showAlertPopup(alertId, childName, message);
                 });
     }
 
+    /**
+     * Displays a blocking popup dialog for a single alert.
+     * After the parent taps "OK", the alert will be marked as processed
+     * so it will not appear again.
+     *
+     * @param alertId   Firestore document ID of the alert
+     * @param childName Name of the child associated with the alert
+     * @param message   Alert message shown to the parent
+     */
+    private void showAlertPopup(String alertId, String childName, String message) {
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Alert for " + childName)
+                .setMessage(message)
+                .setCancelable(false)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    // Mark this alert as processed
+                    db.collection("parentAlerts")
+                            .document(alertId)
+                            .update("processed", true);
+
+                    dialog.dismiss();
+                })
+                .show();
+    }
     // sos setting
     private void checkAndInitActionPlan() {
         DocumentReference docRef = db.collection("users").document(parentUid)

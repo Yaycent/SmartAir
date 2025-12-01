@@ -20,6 +20,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.example.smartair.Constants.CHILD_NAME;
 import static com.example.smartair.Constants.CHILD_UID;
 import static com.example.smartair.Constants.PARENT_UID;
 
@@ -29,6 +30,7 @@ public class AddMedicineActivity extends AppCompatActivity {
     private Spinner spinnerMedType;
     private FirebaseFirestore db;
     private String parentUid, childUid;
+    private String childName;//new
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +59,10 @@ public class AddMedicineActivity extends AppCompatActivity {
             finish();
             return;
         }
+        // add new
+        childName = getIntent().getStringExtra(CHILD_NAME);
+
+
 
         // Bind UI
         editName = findViewById(R.id.editMedicineName);
@@ -139,6 +145,8 @@ public class AddMedicineActivity extends AppCompatActivity {
         med.put("dosePerUse", dosePerUse);
         med.put("parentUid", parentUid);
         med.put("childUid", childUid);
+        // addnew
+        med.put("childName", childName);
 
         db.collection("medicine")
                 .add(med)
@@ -149,5 +157,8 @@ public class AddMedicineActivity extends AppCompatActivity {
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Error saving medicine", Toast.LENGTH_SHORT).show()
                 );
+
+
+
     }
 }

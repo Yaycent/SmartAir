@@ -54,4 +54,5 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:13.0.0")
+
 }

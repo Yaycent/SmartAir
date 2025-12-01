@@ -91,4 +91,27 @@
     <string name="streak_day1">1st Day Complete!</string>
     <string name="streak_on_a_roll">On a roll! 🔥 %1$d Days</string>
 
+    <string name="sos_button">SOS</string>
+    <string name="sos_title">SOS Triage</string>
+
+    <string name="sos_q1">Can\'t speak full sentences?</string>
+    <string name="sos_q2">Chest pulling in / retractions?</string>
+    <string name="sos_q3">Blue or gray lips / nails?</string>
+
+    <string name="sos_yes">Yes</string>
+    <string name="sos_no">No</string>
+
+    <string name="calling_911">Emergency detected. Calling 911...</string>
+
+    <string name="sos_next">Next</string>
+
+    <string name="sos_form_title">No emergency signs detected. Please continue:</string>
+    <string name="sos_recent_rescue_attempts">Recent rescue attempts</string>
+    <string name="sos_current_pef">Current PEF</string>
+    <string name="sos_submit">Submit</string>
+
+    <string name="sos_missing_input">Please answer all questions.</string>
+    <string name="sos_missing_secondary">Please fill out both field.</string>
+
+
 </resources>

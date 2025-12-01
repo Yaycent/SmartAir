@@ -135,6 +135,15 @@ public class ChildDashboardActivity extends AppCompatActivity {
         // --- Back ---
         ImageButton imageButtonBackChildDashboard = findViewById(R.id.imageButtonBackChildDashboard);
         imageButtonBackChildDashboard.setOnClickListener(v -> finish());
+
+        // --- SOS ---
+        Button buttonSOS = findViewById(R.id.buttonSOS);
+        buttonSOS.setOnClickListener(v -> {
+            Intent intent = new Intent(ChildDashboardActivity.this, SOSTriageActivity.class);
+            intent.putExtra(CHILD_UID, childUid);
+            intent.putExtra(PARENT_UID, parentUid);
+            startActivity(intent);
+        });
     }
 
     // Streak section

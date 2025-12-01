@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,6 +38,7 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
@@ -66,16 +68,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private Button buttonAddChild;
     private TextView tvGoToChildDashboard;
     private TextView tvLogout;
-    private Button buttonMedicineCabinet;
 
     private LineChart chartPEF;
 
     private TextView textViewTodayPEFZone;
     private TextView tvRescueSummary;
     private ListenerRegistration medicineListener;
-
-
-
 
     // Firebase
     private FirebaseFirestore db;
@@ -92,6 +90,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private MedicineAdapter adapter;
     private ArrayList<MedicineItem> medicineList;
     private RescueUsageManager rescueManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,6 +133,14 @@ public class ParentDashboardActivity extends AppCompatActivity {
         askNotificationPermission();
         saveFcmToken();
 
+        // sos setting
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            parentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+            // Upon entering the dashboard, the default settings are initialized.
+            checkAndInitActionPlan();
+        }
+
     }
     @Override
     protected void onResume() {
@@ -155,6 +162,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
         tvLogout = findViewById(R.id.tvLogout);
         recyclerView = findViewById(R.id.recyclerMedicineInventory);
         Button buttonAddMedicine = findViewById(R.id.buttonAddMedicine);
+        ImageButton btnSettings = findViewById(R.id.btnSettings);
         spinnerRange = findViewById(R.id.spinnerTimeRange);
         chartPEF = findViewById(R.id.chartPEF);
         textViewTodayPEFZone = findViewById(R.id.textViewTodayPEFZone);
@@ -267,6 +275,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
             addMedIntent.putExtra(PARENT_UID, parentUid);
             addMedIntent.putExtra(CHILD_UID, activeChildUid);
             startActivity(addMedIntent);
+        });
+
+        // Setting
+        btnSettings.setOnClickListener(v -> {
+            Intent intent = new Intent(ParentDashboardActivity.this, SettingActivity.class);
+            startActivity(intent);
         });
 
         ArrayAdapter<String> rangeAdapter = new ArrayAdapter<>(
@@ -780,6 +794,34 @@ public class ParentDashboardActivity extends AppCompatActivity {
                                         "Error saving user data", e));
                     }
                 });
+    }
+
+    // sos setting
+    private void checkAndInitActionPlan() {
+        DocumentReference docRef = db.collection("users").document(parentUid)
+                .collection("settings").document("action_plan");
+
+        docRef.get().addOnSuccessListener(documentSnapshot -> {
+            // Only when the document does not exist should the default value be written.
+            if (!documentSnapshot.exists()) {
+                Map<String, Object> defaultPlan = new HashMap<>();
+                defaultPlan.put("greenZone", DEFAULT_GREEN);
+                defaultPlan.put("yellowZone", DEFAULT_YELLOW);
+                defaultPlan.put("redZone", DEFAULT_RED);
+                defaultPlan.put("updatedAt", System.currentTimeMillis());
+
+                docRef.set(defaultPlan)
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d("ParentDashboard", "Default Action Plan initialized.");
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e("ParentDashboard", "Failed to init defaults", e);
+                        });
+            } else {
+                // If it already exists, do nothing.
+                Log.d("ParentDashboard", "Action Plan already exists. Skipping init.");
+            }
+        });
     }
 
 

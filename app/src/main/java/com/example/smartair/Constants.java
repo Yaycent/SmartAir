@@ -12,4 +12,9 @@ public class Constants {
     public static final String ROLE_PARENT = "Parent";
     public static final String ROLE_DOCTOR = "Provider";
     public static final String ROLE_CHILD = "Child";
+
+    // sos
+    public static final String DEFAULT_GREEN = "Keep normal medication.";
+    public static final String DEFAULT_YELLOW = "Take rescue meds 2-4 puffs. Wait 10 mins.";
+    public static final String DEFAULT_RED = "Call 911 immediately.";
 }

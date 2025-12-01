@@ -145,6 +145,21 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Setting button -->
+    <ImageButton
+        android:id="@+id/btnSettings"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Settings"
+        android:padding="12dp"
+        android:src="@drawable/ic_settings"
+        app:layout_constraintBottom_toBottomOf="@+id/tvHiParent"
+        app:layout_constraintEnd_toStartOf="@+id/tvGoToChildDashboard"
+        app:layout_constraintTop_toTopOf="@+id/tvHiParent"
+        app:tint="#333333" />
+
 
     <!-- PEF Section Header -->
     <Spinner

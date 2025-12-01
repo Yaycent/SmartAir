@@ -51,10 +51,16 @@ public class SOSSecondaryActivity extends AppCompatActivity {
         btnSubmit.setOnClickListener(v -> handleSubmit());
     }
 
+    /**
+     * Validates user input, converts to integers,
+     * then uploads the triage log to Firestore.
+     * Return to Child Dashboard when success.
+     */
     private void handleSubmit() {
         String attemptsStr = editRescueAttempts.getText().toString().trim();
         String pefStr = editCurrentPEF.getText().toString().trim();
 
+        // Check if fields empty
         if (attemptsStr.isEmpty() || pefStr.isEmpty()) {
             Toast.makeText(this, getString(R.string.sos_missing_secondary), Toast.LENGTH_SHORT).show();
             return;
@@ -63,6 +69,7 @@ public class SOSSecondaryActivity extends AppCompatActivity {
         int attempts;
         int pef;
 
+        // Ensure number format is valid
         try {
             attempts = Integer.parseInt(attemptsStr);
             pef = Integer.parseInt(pefStr);
@@ -71,6 +78,7 @@ public class SOSSecondaryActivity extends AppCompatActivity {
             return;
         }
 
+        // Create log data
         Map<String, Object> data = new HashMap<>();
         data.put("childUid", childUid);
         data.put("parentUid", parentUid);
@@ -78,6 +86,7 @@ public class SOSSecondaryActivity extends AppCompatActivity {
         data.put("rescueAttempts", attempts);
         data.put("currentPEF", pef);
 
+        // Save to Firestore
         db.collection("sosTriageLogs")
                 .add(data)
                 .addOnSuccessListener(doc -> {

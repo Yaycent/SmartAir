@@ -56,12 +56,18 @@ public class SOSTriageActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Evaluate the three triage questions.
+     * If ANY answer is “Yes”, then treat as emergency, show warning & call 911.
+     * If all are “No”, then proceed to secondary SOS form page.
+     */
     private void evaluateAnswers() {
 
         int q1 = rgQ1.getCheckedRadioButtonId();
         int q2 = rgQ2.getCheckedRadioButtonId();
         int q3 = rgQ3.getCheckedRadioButtonId();
 
+        // Ensure all questions answered
         if (q1 == -1 || q2 == -1 || q3 == -1) {
             Toast.makeText(this, getString(R.string.sos_missing_input), Toast.LENGTH_SHORT).show();
             return;
@@ -75,6 +81,7 @@ public class SOSTriageActivity extends AppCompatActivity {
         savePage1Log(hasEmergency);
 
         if (hasEmergency) {
+            // Show emergency toast & trigger phone dialer
             Toast.makeText(this, getString(R.string.calling_911), Toast.LENGTH_LONG).show();
             call911();
             finish();
@@ -89,6 +96,9 @@ public class SOSTriageActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Save the log data to Firestore.
+     */
     private void savePage1Log(boolean emergency) {
         Map<String, Object> data = new HashMap<>();
         data.put("parentUid", parentUid);
@@ -105,7 +115,10 @@ public class SOSTriageActivity extends AppCompatActivity {
     }
 
 
-
+    /**
+     * Opens the phone dialer pre-filled with 911.
+     * If emulator or device cannot open dialer, show fallback toast.
+     */
     private void call911() {
         Intent intent = new Intent(Intent.ACTION_DIAL);
         intent.setData(Uri.parse("tel:911"));

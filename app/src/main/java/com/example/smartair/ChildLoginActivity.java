@@ -31,9 +31,6 @@ public class ChildLoginActivity extends AppCompatActivity {
     private Button btnLogin;
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private LinearLayout layoutQuickLogin;
-    private Button btnQuickLogin;
-    private TextView tvLogoutChild;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,15 +47,12 @@ public class ChildLoginActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
 
         initViews();
-        checkPreviousSession();
     }
 
     private void initViews() {
         etCode = findViewById(R.id.etCode);
         btnLogin = findViewById(R.id.btnLogin);
-        layoutQuickLogin = findViewById(R.id.layoutQuickLogin);
-        btnQuickLogin = findViewById(R.id.btnQuickLogin);
-        tvLogoutChild = findViewById(R.id.tvLogoutChild);
+        TextView tvLogoutChild = findViewById(R.id.tvLogoutChild);
 
         // code
         btnLogin.setOnClickListener(v -> {
@@ -72,40 +66,16 @@ public class ChildLoginActivity extends AppCompatActivity {
 
         // back
         tvLogoutChild.setOnClickListener(v -> {
-            // A. 清除本地缓存
+            // clear cache
             clearLocalCache();
-            Toast.makeText(this, "Cache Cleared", Toast.LENGTH_SHORT).show();
 
-            // B. 跳转回角色选择页 (RoleSelectionActivity)
+            // back to RoleSelectionActivity
             Intent intent = new Intent(ChildLoginActivity.this, RoleSelectionActivity.class);
-            // 清空返回栈，防止用户按手机返回键又回来
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
         });
     }
-
-    private void checkPreviousSession() {
-        SharedPreferences prefs = getSharedPreferences("SmartAirChildPrefs", Context.MODE_PRIVATE);
-        String savedUid = prefs.getString("CHILD_UID", null);
-        String savedName = prefs.getString("CHILD_NAME", "Child");
-
-        // 只有当 ID 存在且不为空时，才显示快速登录
-        if (savedUid != null && !savedUid.isEmpty()) {
-            layoutQuickLogin.setVisibility(View.VISIBLE);
-            btnQuickLogin.setText("Continue as " + savedName);
-
-            btnQuickLogin.setOnClickListener(v -> {
-                // 用户主动点击了“继续”，才跳转
-                goToDashboard(savedUid, savedName, prefs.getString("PARENT_UID", ""));
-            });
-        } else {
-            layoutQuickLogin.setVisibility(View.GONE);
-        }
-    }
-
-    // ... (signInAnonymouslyAndVerify 和 verifyInviteCode 保持不变) ...
-    // ... (务必保留里面对于 targetChildId 的处理) ...
 
     private void signInAnonymouslyAndVerify(String code) {
         btnLogin.setEnabled(false);
@@ -131,17 +101,17 @@ public class ChildLoginActivity extends AppCompatActivity {
                     String forWho = doc.getString("forWho");
                     Date expiresAt = doc.getDate("expiresAt");
 
-                    // 1. 检查类型 (最常见错误：家长选成了 Provider)
+                    // Inspection Type
                     if (!"child".equals(forWho)) {
                         showError("Wrong Code Type: This code is for Doctors, not Children.");
                         return;
                     }
-                    // 2. 检查是否已用过
+                    // be used
                     if (isUsed) {
                         showError("Code Expired: This code has already been used.");
                         return;
                     }
-                    // 3. 检查是否过期
+                    // expired
                     if (expiresAt != null && expiresAt.before(new Date())) {
                         showError("Code Expired: Time limit exceeded.");
                         return;
@@ -151,7 +121,7 @@ public class ChildLoginActivity extends AppCompatActivity {
                     String targetChildId = doc.getString("targetChildId");
                     String targetChildName = doc.getString("targetChildName");
 
-                    // 验证通过，标记为已使用
+                    // mark as used
                     db.collection("invites").document(code).update("isUsed", true);
 
                     if (targetChildId != null) {
@@ -162,8 +132,6 @@ public class ChildLoginActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> showError("Error checking code"));
     }
-
-    // ... selectChildProfile 等保持不变 ...
 
     private void saveAndStart(String childUid, String childName, String parentId) {
         SharedPreferences prefs = getSharedPreferences("SmartAirChildPrefs", Context.MODE_PRIVATE);
@@ -177,7 +145,6 @@ public class ChildLoginActivity extends AppCompatActivity {
         goToDashboard(childUid, childName, parentId);
     }
 
-    // 修改跳转方法，接收参数，确保传给 Dashboard 的 Intent 里有数据
     private void goToDashboard(String uid, String name, String pid) {
         Intent intent = new Intent(this, ChildDashboardActivity.class);
         intent.putExtra("CHILD_UID", uid);
@@ -198,7 +165,6 @@ public class ChildLoginActivity extends AppCompatActivity {
         auth.signOut();
     }
 
-    // ... selectChildProfile / showChildSelectionDialog 代码请保留 ...
     private void selectChildProfile(String parentId) {
         db.collection("children")
                 .whereEqualTo("parentId", parentId)

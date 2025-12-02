@@ -185,19 +185,16 @@ public class ChildDashboardActivity extends AppCompatActivity {
         // --- Back ---
         ImageButton imageButtonBackChildDashboard = findViewById(R.id.imageButtonBackChildDashboard);
         imageButtonBackChildDashboard.setOnClickListener(v -> {
-            // 创建一个简单的弹窗确认注销
             new AlertDialog.Builder(this)
                     .setTitle("Log Out")
                     .setMessage("Do you want to exit and sign in again?")
                     .setPositiveButton("Log Out", (dialog, which) -> {
-                        // 1. 清除本地缓存
                         SharedPreferences prefs = getSharedPreferences("SmartAirChildPrefs", Context.MODE_PRIVATE);
                         prefs.edit().clear().apply();
 
-                        // 2. Firebase 注销 (如果是匿名登录)
                         FirebaseAuth.getInstance().signOut();
 
-                        // 3. 跳转回登录页
+                        // back to log in page
                         Intent intent = new Intent(ChildDashboardActivity.this, ChildLoginActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);

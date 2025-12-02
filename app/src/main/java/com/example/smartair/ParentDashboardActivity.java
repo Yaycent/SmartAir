@@ -505,31 +505,26 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     Calendar cal = Calendar.getInstance();
                     cal.add(Calendar.DAY_OF_YEAR, -(days - 1));
 
-                    // 遍历过去 N 天，确保每一天都在图表上有位置（即使是空值）
                     for (int i = 0; i < days; i++) {
                         String day = dayFormat.format(cal.getTime());
-                        float x = i; // X轴索引：0, 1, 2...
+                        float x = i;
 
                         if (dailyValues.containsKey(day)) {
                             finalEntries.add(new Entry(x, dailyValues.get(day)));
                             finalTags.add(dailyTags.get(day));
                         } else {
-                            // 这是一个优化的点：如果那天没数据，是否要显示空断点？
-                            // 之前的逻辑是显示 Float.NaN，这会导致线条断开，看起来比较清楚
                             finalEntries.add(new Entry(x, Float.NaN));
                             finalTags.add("");
                         }
                         cal.add(Calendar.DAY_OF_YEAR, 1);
                     }
 
-                    // 获取孩子的 PB 值来画绿/黄线
                     db.collection("children").document(childUid)
                             .get()
                             .addOnSuccessListener(doc -> {
                                 Double PB = doc.getDouble("childPB");
                                 if (PB == null) PB = 0.0;
 
-                                // 调用新的绘图方法
                                 drawPEFChart(finalEntries, finalTags, PB, days);
                             });
                 });
@@ -548,27 +543,23 @@ public class ParentDashboardActivity extends AppCompatActivity {
         set.setCircleRadius(4f);
         set.setColor(Color.BLUE);
         set.setCircleColor(Color.BLUE);
-        set.setDrawValues(false); // 不要在点上直接显示数字，太乱
+        set.setDrawValues(false);
         set.setMode(LineDataSet.Mode.LINEAR);
         set.setDrawCircles(true);
-        set.setDrawCircleHole(false); // 实心圆点更好看
+        set.setDrawCircleHole(false);
 
-        // 优化：处理空数据时的断线逻辑
         set.setDrawFilled(false);
 
         LineData data = new LineData(set);
         chartPEF.setData(data);
 
-        // --- Y Axis (左侧) ---
         YAxis left = chartPEF.getAxisLeft();
         left.removeAllLimitLines();
         left.setAxisMinimum(0f);
 
-        // 【改进点】最大值设置为 PB 的 1.1 倍，或者是 600 (如果没有 PB)，防止折线顶格
         float maxVal = (float) (PB > 0 ? PB * 1.1 : 600);
         left.setAxisMaximum(maxVal);
 
-        // 只有当 PB 有效时才画分区线
         if (PB > 0) {
             float green = (float) (PB * 0.8);
             float yellow = (float) (PB * 0.5);
@@ -587,37 +578,29 @@ public class ParentDashboardActivity extends AppCompatActivity {
             left.addLimitLine(yellowLine);
         }
 
-        // --- Axis Settings ---
-        chartPEF.getAxisRight().setEnabled(false); // 隐藏右侧轴
+        chartPEF.getAxisRight().setEnabled(false);
 
         XAxis xAxis = chartPEF.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setGranularity(1f); // 确保间隔是 1
-        xAxis.setDrawGridLines(false); // X轴不画网格线，看起来更干净
+        xAxis.setGranularity(1f);
+        xAxis.setDrawGridLines(false);
 
-        // 【改进点】X轴日期格式化 (复用 Provider 的逻辑)
         final SimpleDateFormat fmt = new SimpleDateFormat("MM/dd");
         final long now = System.currentTimeMillis();
         final long dayMillis = 24 * 60 * 60 * 1000L;
-        // 计算起始时间戳 (当前时间 - (天数-1)天)
         final long startTimestamp = now - (days - 1) * dayMillis;
 
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String getAxisLabel(float value, AxisBase axis) {
-                // value 是索引 (0, 1, 2...)
-                // 索引 * 一天的毫秒数 + 起始时间 = 那一天的日期
                 long dateMillis = startTimestamp + (long)(value * dayMillis);
                 return fmt.format(new Date(dateMillis));
             }
         });
 
-        // --- 交互设置 ---
-        // 保留点击显示 Tag 的功能
         chartPEF.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
-                // entries 中的 index 对应 X 轴的值
                 int index = (int) e.getX();
                 if (index >= 0 && index < tags.size()) {
                     String tag = tags.get(index);
@@ -635,7 +618,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
         chartPEF.setScaleEnabled(false);
         chartPEF.setPinchZoom(false);
 
-        // 刷新图表
         chartPEF.invalidate();
     }
 

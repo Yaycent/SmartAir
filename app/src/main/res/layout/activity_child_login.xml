@@ -6,80 +6,46 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFF7EC"
-    android:padding="24dp"
+    android:padding="20dp"
     tools:context=".ChildLoginActivity">
 
     <ImageView
         android:id="@+id/ivIcon"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="32dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:src="@drawable/_925740"
+        app:layout_constraintBottom_toTopOf="@+id/tvTitle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
 
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:text="Child Login"
         android:textColor="#202124"
         android:textSize="28sp"
         android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/tvSubtitle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ivIcon" />
-
-    <LinearLayout
-        android:id="@+id/layoutQuickLogin"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
-        tools:visibility="visible">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Previous session found:"
-            android:textColor="#757575"
-            android:textSize="12sp" />
-
-        <Button
-            android:id="@+id/btnQuickLogin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:backgroundTint="#8D96FF"
-            android:text="Continue as Child"
-            android:textColor="#FFFFFF" />
-
-        <TextView
-            android:id="@+id/tvOr"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="- OR -"
-            android:textColor="#9E9E9E"
-            android:textStyle="bold" />
-    </LinearLayout>
 
     <TextView
         android:id="@+id/tvSubtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Enter code from parent"
+        android:layout_marginTop="32dp"
+        android:text="Enter the code from your parent"
         android:textColor="#5F6368"
         android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/etCode"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layoutQuickLogin" />
+        app:layout_constraintTop_toBottomOf="@+id/tvTitle" />
 
     <EditText
         android:id="@+id/etCode"
@@ -90,10 +56,11 @@
         android:gravity="center"
         android:hint="123456"
         android:inputType="number"
-        android:letterSpacing="0.2"
         android:maxLength="6"
         android:padding="12dp"
         android:textSize="24sp"
+        android:letterSpacing="0.2"
+        app:layout_constraintBottom_toTopOf="@+id/btnLogin"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvSubtitle" />
@@ -102,13 +69,12 @@
         android:id="@+id/btnLogin"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="32dp"
         android:backgroundTint="#F5A849"
         android:text="Connect"
         android:textSize="18sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/etCode" />
 
     <TextView
@@ -116,10 +82,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:padding="16dp"
+        android:padding="8dp"
         android:text="Back"
         android:textColor="#757575"
-        android:textSize="14sp"
+        android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

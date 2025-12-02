@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -18,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -57,6 +59,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Random;
 
 import static com.example.smartair.Constants.*;
 
@@ -67,9 +70,8 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private Spinner spinnerChild;
     private Spinner spinnerRange;
     private TextView buttonAddChild;
-    private ImageView tvGoToChildDashboard;
+    private FrameLayout tvGoToChildDashboard;
     private TextView tvLogout;
-    private Button buttonMedicineCabinet;
     private Button buttonSymptomHistory;
 
     private LineChart chartPEF;
@@ -77,6 +79,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private TextView textViewTodayPEFZone;
     private TextView tvRescueSummary;
     private ListenerRegistration medicineListener;
+    private ListenerRegistration medicineListListener;
 
     // Firebase
     private FirebaseFirestore db;
@@ -86,8 +89,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private ArrayList<String> childNames = new ArrayList<>();
     private ArrayList<String> childIds = new ArrayList<>();
     private String parentUid;
-
-
+    private boolean shouldReloadChildren = false;
     private String activeChildUid = null;
     private String activeChildName = null;
 
@@ -154,7 +156,11 @@ public class ParentDashboardActivity extends AppCompatActivity {
             parentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         }
 
-        loadChildrenFromFirestore();
+        if (shouldReloadChildren) {
+            loadChildrenFromFirestore();
+            shouldReloadChildren = false;
+        }
+
         listenForSingleAlert();
         if (activeChildUid != null) {
             loadMedicines(activeChildUid);
@@ -172,6 +178,9 @@ public class ParentDashboardActivity extends AppCompatActivity {
         chartPEF = findViewById(R.id.chartPEF);
         textViewTodayPEFZone = findViewById(R.id.textViewTodayPEFZone);
         buttonSymptomHistory = findViewById(R.id.buttonSymptomHistory);
+        View btnGenerateCode = findViewById(R.id.btnGenerateCode);
+        btnGenerateCode.setOnClickListener(v -> showGenerateCodeDialog());
+
 
         // Spinner
         spinnerChild.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -199,15 +208,13 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 findRescueMedicineAndListen(activeChildUid);
 
 
-                if (position > 0) {
-                    if (position < childIds.size()) {
-                        String childUid = childIds.get(position);
-                        int days = (spinnerRange.getSelectedItemPosition() == 0) ? 7 : 30;
+                if (position < childIds.size() && position < childNames.size()) {
+                    String childUid = childIds.get(position);
+                    int days = (spinnerRange.getSelectedItemPosition() == 0) ? 7 : 30;
 
-                        fetchTodayPEFZone(childUid);
+                    fetchTodayPEFZone(childUid);
 
-                        loadPEFData(childUid, days);
-                    }
+                    loadPEFData(childUid, days);
                 } else {
                     chartPEF.clear();
                     chartPEF.setNoDataText("Please select a child to view PEF data.");
@@ -239,6 +246,8 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
         //Add Child
         buttonAddChild.setOnClickListener(v -> {
+            shouldReloadChildren = true;
+
             Intent intent = new Intent(ParentDashboardActivity.this, AddChildActivity.class);
             intent.putExtra(PARENT_UID, parentUid);
             startActivity(intent);
@@ -292,7 +301,14 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
         // Setting
         btnSettings.setOnClickListener(v -> {
+            // check if child
+            if (activeChildUid == null || activeChildUid.equals("NONE")) {
+                Toast.makeText(ParentDashboardActivity.this, "Please select a child first to configure settings.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             Intent intent = new Intent(ParentDashboardActivity.this, SettingActivity.class);
+            intent.putExtra("CHILD_UID", activeChildUid);
             startActivity(intent);
         });
 
@@ -340,10 +356,10 @@ public class ParentDashboardActivity extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
-
     }
 
     private void loadChildrenFromFirestore() {
+        String currentSelectedUid = activeChildUid;
 
         db.collection("children")
                 .whereEqualTo("parentId", parentUid)
@@ -376,8 +392,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     spinnerChild.setAdapter(adapter);
 
-                    // Restore saved selection (must be AFTER adapter)
-                    if (savedChildIndex < childNames.size()) {
+                    if (currentSelectedUid != null) {
+                        int newIndex = childIds.indexOf(currentSelectedUid);
+                        if (newIndex >= 0) {
+                            spinnerChild.setSelection(newIndex);
+                        }
+                    } else if (savedChildIndex < childNames.size()) {
                         spinnerChild.setSelection(savedChildIndex);
                     }
 
@@ -397,7 +417,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
             return;
         }
 
-        db.collection("medicine")
+        if (medicineListListener != null) {
+            medicineListListener.remove();
+            medicineListListener = null;
+        }
+
+        medicineListListener = db.collection("medicine")
                 .whereEqualTo("parentUid", parentUid)
                 .whereEqualTo("childUid", childUid)
                 .addSnapshotListener((snap, e) -> {
@@ -415,12 +440,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
                             medicineList.add(item);
                         }
                     });
-                    // NEW
                     checkMedicineAlerts();
                     adapter.notifyDataSetChanged();
                 });
     }
-//ADD NEW
+
+    //ADD NEW
     private void checkMedicineAlerts() {
         if (medicineList == null || medicineList.isEmpty()) return;
         if (parentUid == null) return;
@@ -447,14 +472,13 @@ public class ParentDashboardActivity extends AppCompatActivity {
         }
     }
 
-
     private void loadPEFData(String childUid, int days) {
 
         long now = System.currentTimeMillis();
         long from = now - days * 24L * 60 * 60 * 1000;
 
         db.collection("pefLogs")
-                .whereEqualTo("childUid", childUid)
+                .whereEqualTo("childId", childUid)
                 .whereGreaterThan("timeStamp", from)
                 .orderBy("timeStamp")
                 .get()
@@ -511,7 +535,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
                             });
                 });
     }
-
 
 
     private void drawPEFChart(ArrayList<Entry> entries, ArrayList<String> tags, double PB) {
@@ -675,7 +698,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
         Log.d(TAG, "Start of Today = " + startOfToday);
 
         db.collection("pefLogs")
-                .whereEqualTo("childUid", childUid)
+                .whereEqualTo("childId", childUid)
                 .whereGreaterThanOrEqualTo("timeStamp", startOfToday)
                 .orderBy("timeStamp", Query.Direction.ASCENDING)
                 .get()
@@ -699,13 +722,11 @@ public class ParentDashboardActivity extends AppCompatActivity {
     }
 
 
-
     private void updateDashboardZoneUI(String zone) {
         if (textViewTodayPEFZone == null) return;
 
         int textColor;
         String zoneText;
-
 
         switch (zone) {
             case "Green":
@@ -789,7 +810,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
         return fullFmt.format(date);
     }
 
-
     private void findRescueMedicineAndListen(String childUid) {
 
         if (medicineListener != null) {
@@ -815,7 +835,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     listenToMedicineUpdates(medId);
                 });
     }
-
 
     /**
      * Listens for the most recent unprocessed alert for this parent.
@@ -906,6 +925,89 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 Log.d("ParentDashboard", "Action Plan already exists. Skipping init.");
             }
         });
+    }
+
+    // code
+    private void showGenerateCodeDialog() {
+        String[] options = {"For Child (Log in)", "For Healthcare Provider"};
+
+        new AlertDialog.Builder(this)
+                .setTitle("Generate Invitation Code")
+                .setItems(options, (dialog, which) -> {
+                    String forWho = (which == 0) ? "child" : "provider";
+                    generateAndSaveCode(forWho);
+                })
+                .show();
+    }
+
+    private void generateAndSaveCode(String forWho) {
+        // Generate a 6-digit random code
+        int randomCode = new Random().nextInt(900000) + 100000; // 100000 ~ 999999
+        String codeString = String.valueOf(randomCode);
+
+        // Calculate expiration time (7 days later)
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, 7);
+        Date expiresAt = calendar.getTime();
+
+        Map<String, Object> inviteData = new HashMap<>();
+        inviteData.put("code", codeString);
+        inviteData.put("parentId", parentUid);
+        inviteData.put("forWho", forWho);
+        inviteData.put("expiresAt", expiresAt);
+        inviteData.put("isUsed", false);
+
+        // Firestore "invites"
+        FirebaseFirestore.getInstance().collection("invites").document(codeString)
+                .set(inviteData)
+                .addOnSuccessListener(aVoid -> {
+                    showCodeSuccessDialog(codeString, forWho);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to generate code", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void showCodeSuccessDialog(String code, String forWho) {
+        new AlertDialog.Builder(this)
+                .setTitle("Code Generated!")
+                .setMessage("Your code for " + forWho + " is:\n\n" + code + "\n\nIt expires in 7 days.")
+                .setPositiveButton("Copy", (dialog, which) -> {
+                    android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                    android.content.ClipData clip = android.content.ClipData.newPlainText("Invite Code", code);
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(this, "Copied!", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("OK", null)
+                .show();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // 移除药品列表监听
+        if (medicineListListener != null) {
+            medicineListListener.remove();
+            medicineListListener = null;
+        }
+
+        // 移除单个报警监听
+        if (singleAlertListener != null) {
+            singleAlertListener.remove();
+            singleAlertListener = null;
+        }
+
+        // 移除之前的药品监听（你代码里原有的）
+        if (medicineListener != null) {
+            medicineListener.remove();
+            medicineListener = null;
+        }
+
+        // 停止救援管理器
+        if (rescueManager != null) {
+            rescueManager.stop();
+        }
     }
 
 }

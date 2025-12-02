@@ -15,6 +15,7 @@ import android.widget.Toast;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -185,24 +186,36 @@ public class ChildDashboardActivity extends AppCompatActivity {
         // --- Back ---
         ImageButton imageButtonBackChildDashboard = findViewById(R.id.imageButtonBackChildDashboard);
         imageButtonBackChildDashboard.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
-                    .setTitle("Log Out")
-                    .setMessage("Do you want to exit and sign in again?")
-                    .setPositiveButton("Log Out", (dialog, which) -> {
-                        SharedPreferences prefs = getSharedPreferences("SmartAirChildPrefs", Context.MODE_PRIVATE);
-                        prefs.edit().clear().apply();
-
-                        FirebaseAuth.getInstance().signOut();
-
-                        // back to log in page
-                        Intent intent = new Intent(ChildDashboardActivity.this, ChildLoginActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
+            showLogoutDialog();
         });
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                showLogoutDialog();
+            }
+        });
+
+    }
+
+    // back button
+    private void showLogoutDialog() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Log Out")
+                .setMessage("Do you want to log out?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    getSharedPreferences("SmartAirChildPrefs", MODE_PRIVATE)
+                            .edit().clear().apply();
+
+                    FirebaseAuth.getInstance().signOut();
+
+                    Intent intent = new Intent(ChildDashboardActivity.this, ChildLoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 
     // Streak section
@@ -259,7 +272,6 @@ public class ChildDashboardActivity extends AppCompatActivity {
                     Log.e("STREAK", "Firestore ERROR: " + e.getMessage());
                     tvStreak.setText(getString(R.string.streak_start));
                 });
-
     }
 
     // Rescue

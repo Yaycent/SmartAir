@@ -20,10 +20,11 @@ import static com.example.smartair.Constants.*;
 
 public class OnboardingActivity extends AppCompatActivity {
 
-    private ViewPager2 onboardingPage;
+    private ViewPager2 viewPager;
     private Button btnNext, btnSkip;
 
     private List<OnboardingPage> onboardingPages;
+    private OnboardingAdapter adapter;
     private String userRole; // Parent / Child / Provider
 
 
@@ -43,6 +44,7 @@ public class OnboardingActivity extends AppCompatActivity {
 
         initViews();
         initPages();
+        initViewPager();
         initButtons();
     }
 
@@ -50,7 +52,7 @@ public class OnboardingActivity extends AppCompatActivity {
      * Initialize UI Elements.
      */
     private void initViews() {
-        onboardingPage = findViewById(R.id.onbPageDescription);
+        viewPager = findViewById(R.id.onbViewPager);
         btnNext = findViewById(R.id.onbBtnNext);
         btnSkip = findViewById(R.id.onbBtnSkip);
     }
@@ -107,8 +109,33 @@ public class OnboardingActivity extends AppCompatActivity {
                 break;
         }
 
-        onboardingPage.setAdapter(new OnboardingAdapter(onboardingPages));
+        viewPager.setAdapter(new OnboardingAdapter(onboardingPages));
     }
+
+    /**
+     * Set adapter and register page callback
+     */
+    private void initViewPager() {
+        adapter = new OnboardingAdapter(onboardingPages);
+        viewPager.setAdapter(adapter);
+
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+
+                boolean isLastPage = (position == adapter.getItemCount() - 1);
+
+                btnNext.setText(
+                        isLastPage
+                                ? getString(R.string.onboarding_done)
+                                : getString(R.string.onboarding_next)
+                );
+
+                btnSkip.setVisibility(isLastPage ? Button.INVISIBLE : Button.VISIBLE);
+            }
+        });
+    }
+
 
     /**
      * Handle Next & Skip buttons as well as UI updates based on page changes.
@@ -118,27 +145,13 @@ public class OnboardingActivity extends AppCompatActivity {
         btnSkip.setOnClickListener(v -> finishOnboarding());
 
         btnNext.setOnClickListener(v -> {
-            int currentPage = onboardingPage.getCurrentItem();
-            if (currentPage < onboardingPages.size() - 1) {
-                onboardingPage.setCurrentItem(currentPage + 1);
+            int currentPage = viewPager.getCurrentItem();
+            int lastIndex = adapter.getItemCount() - 1;
+
+            if (currentPage < lastIndex) {
+                viewPager.setCurrentItem(currentPage + 1);
             } else {
                 finishOnboarding();
-            }
-        });
-
-        onboardingPage.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-
-                boolean isLastPage = (position == onboardingPages.size() - 1);
-
-                btnNext.setText(
-                        isLastPage
-                                ? getString(R.string.onboarding_done)
-                                : getString(R.string.onboarding_next)
-                );
-
-                btnSkip.setVisibility(isLastPage ? Button.INVISIBLE : Button.VISIBLE);
             }
         });
     }

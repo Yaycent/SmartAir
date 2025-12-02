@@ -10,6 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -78,6 +79,7 @@ public class ProviderDashboardActivity extends AppCompatActivity {
     private ArrayList<String> patientIds = new ArrayList<>(); // Child UIDs
     private String activeChildUid = null;
     private String activeChildName = null;
+    private  String parentUid;
 
     private MedicineAdapter medicineAdapter;
     private ArrayList<MedicineItem> medicineList;
@@ -112,6 +114,8 @@ public class ProviderDashboardActivity extends AppCompatActivity {
 
         initViews();
         loadLinkedPatients();
+        loadSharedEmergencyAlertsForProvider(parentUid);
+
     }
 
     private void initViews() {
@@ -308,6 +312,7 @@ public class ProviderDashboardActivity extends AppCompatActivity {
                     boolean shareMeds = false;
                     boolean sharePEF = false;
                     boolean shareSymptoms = false;
+                    boolean shareTriage = false;
 
                     if (snapshot.contains("sharingSettings")) {
                         Map<String, Object> settings = (Map<String, Object>) snapshot.get("sharingSettings");
@@ -315,14 +320,17 @@ public class ProviderDashboardActivity extends AppCompatActivity {
                             shareMeds = Boolean.TRUE.equals(settings.get("shareMeds"));
                             sharePEF = Boolean.TRUE.equals(settings.get("sharePEF"));
                             shareSymptoms = Boolean.TRUE.equals(settings.get("shareSymptoms"));
+                            shareTriage = Boolean.TRUE.equals(settings.get("shareTriage"));
                         }
                     }
 
-                    updateSectionVisibility(childUid, shareMeds, sharePEF, shareSymptoms);
+                    updateSectionVisibility(childUid, shareMeds, sharePEF, shareSymptoms, shareTriage);
                 });
     }
 
-    private void updateSectionVisibility(String childUid, boolean shareMeds, boolean sharePEF, boolean shareSymptoms) {
+
+    private void updateSectionVisibility(String childUid, boolean shareMeds, boolean sharePEF, boolean shareSymptoms,
+                                         boolean shareTriage) {
         // 1. Medicine
         if (shareMeds) {
             cardMedicationInventory.setVisibility(View.VISIBLE);
@@ -367,6 +375,14 @@ public class ProviderDashboardActivity extends AppCompatActivity {
         } else {
             buttonSymptomHistory.setVisibility(View.GONE);
         }
+
+        // 4. Triage
+        if (shareTriage) {
+            findViewById(R.id.btnOneTapTriage).setVisibility(View.VISIBLE);
+        } else {
+            findViewById(R.id.btnOneTapTriage).setVisibility(View.GONE);
+        }
+
     }
 
     private void stopPatientDataListeners() {
@@ -648,4 +664,65 @@ public class ProviderDashboardActivity extends AppCompatActivity {
         if (medicineListListener != null) medicineListListener.remove();
         if (rescueMedicineListener != null) rescueMedicineListener.remove();
     }
+
+    private void loadSharedEmergencyAlertsForProvider(String parentUid) {
+
+        db.collection("users")
+                .document(parentUid)
+                .collection("settings")
+                .document("preferences")
+                .get()
+                .addOnSuccessListener(doc -> {
+
+                    boolean share = doc.getBoolean("shareEmergencyEvent") != null &&
+                            doc.getBoolean("shareEmergencyEvent");
+
+                    if (!share) {
+                        findViewById(R.id.layoutEmergencyAlerts).setVisibility(View.GONE);
+                        return;
+                    }
+
+                    loadEmergencyAlertsForProvider(parentUid);
+                });
+    }
+
+    private void loadEmergencyAlertsForProvider(String parentUid) {
+
+        long cutoff = System.currentTimeMillis() - 24L * 60 * 60 * 1000;
+
+        db.collection("parentAlerts")
+                .whereEqualTo("parentUid", parentUid)
+                .whereGreaterThan("timestamp", new Timestamp(new java.util.Date(cutoff)))
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(3)
+                .get()
+                .addOnSuccessListener(snap -> {
+
+                    LinearLayout box = findViewById(R.id.layoutEmergencyAlerts);
+                    LinearLayout list = findViewById(R.id.layoutAlertList);
+
+                    list.removeAllViews();
+
+                    if (snap.isEmpty()) {
+                        box.setVisibility(View.GONE);
+                        return;
+                    }
+
+                    box.setVisibility(View.VISIBLE);
+
+                    for (var doc : snap.getDocuments()) {
+                        String msg = doc.getString("message");
+
+                        TextView tv = new TextView(this);
+                        tv.setText("• " + msg);
+                        tv.setTextSize(14);
+                        tv.setTextColor(Color.parseColor("#A30000"));
+                        tv.setPadding(4, 6, 4, 6);
+
+                        list.addView(tv);
+                    }
+                });
+    }
+
+
 }

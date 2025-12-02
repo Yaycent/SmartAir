@@ -132,7 +132,7 @@ public class SOSSecondaryActivity extends AppCompatActivity {
             ParentAlertHelper.createParentAlertInFirestore(
                     parentUid,
                     childUid,
-                    "child",
+                    childName,
                     "SOS recheck PEF is in the " + zone + " zone."
             );
         }

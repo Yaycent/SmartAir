@@ -69,6 +69,8 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private TextView buttonAddChild;
     private ImageView tvGoToChildDashboard;
     private TextView tvLogout;
+    private Button buttonMedicineCabinet;
+    private Button buttonSymptomHistory;
 
     private LineChart chartPEF;
 
@@ -135,9 +137,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
         tvRescueSummary = findViewById(R.id.tvRescueSummary);
 
 
-
-
-
         // sos setting
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             parentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -172,6 +171,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
         spinnerRange = findViewById(R.id.spinnerTimeRange);
         chartPEF = findViewById(R.id.chartPEF);
         textViewTodayPEFZone = findViewById(R.id.textViewTodayPEFZone);
+        buttonSymptomHistory = findViewById(R.id.buttonSymptomHistory);
 
         // Spinner
         spinnerChild.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -201,12 +201,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
                 if (position > 0) {
                     if (position < childIds.size()) {
-                        String childId = childIds.get(position);
+                        String childUid = childIds.get(position);
                         int days = (spinnerRange.getSelectedItemPosition() == 0) ? 7 : 30;
 
-                        fetchTodayPEFZone(childId);
+                        fetchTodayPEFZone(childUid);
 
-                        loadPEFData(childId, days);
+                        loadPEFData(childUid, days);
                     }
                 } else {
                     chartPEF.clear();
@@ -293,6 +293,29 @@ public class ParentDashboardActivity extends AppCompatActivity {
         // Setting
         btnSettings.setOnClickListener(v -> {
             Intent intent = new Intent(ParentDashboardActivity.this, SettingActivity.class);
+            startActivity(intent);
+        });
+
+        buttonSymptomHistory.setOnClickListener(v -> {
+            int index = spinnerChild.getSelectedItemPosition();
+
+            Toast.makeText(ParentDashboardActivity.this,
+                    "Symptom History clicked, index = " + index, Toast.LENGTH_SHORT).show();
+
+            // 0 is "Select Child"
+            if (index <= 0) {
+                Toast.makeText(ParentDashboardActivity.this,
+                        "Please select a child first.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            String selectedChildUid = childIds.get(index);
+            String selectedChildName = childNames.get(index);
+
+            Intent intent = new Intent(ParentDashboardActivity.this, SymptomHistoryActivity.class);
+            intent.putExtra(CHILD_UID, selectedChildUid);
+            intent.putExtra(CHILD_NAME, selectedChildName);
+            intent.putExtra(PARENT_UID, parentUid);
             startActivity(intent);
         });
 
@@ -425,13 +448,13 @@ public class ParentDashboardActivity extends AppCompatActivity {
     }
 
 
-    private void loadPEFData(String childId, int days) {
+    private void loadPEFData(String childUid, int days) {
 
         long now = System.currentTimeMillis();
         long from = now - days * 24L * 60 * 60 * 1000;
 
         db.collection("pefLogs")
-                .whereEqualTo("childId", childId)
+                .whereEqualTo("childUid", childUid)
                 .whereGreaterThan("timeStamp", from)
                 .orderBy("timeStamp")
                 .get()
@@ -478,7 +501,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     }
 
 
-                    db.collection("children").document(childId)
+                    db.collection("children").document(childUid)
                             .get()
                             .addOnSuccessListener(doc -> {
                                 Double PB = doc.getDouble("childPB");
@@ -640,7 +663,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
     }
 
 
-    private void fetchTodayPEFZone(String childId) {
+    private void fetchTodayPEFZone(String childUid) {
 
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -652,7 +675,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
         Log.d(TAG, "Start of Today = " + startOfToday);
 
         db.collection("pefLogs")
-                .whereEqualTo("childId", childId)
+                .whereEqualTo("childUid", childUid)
                 .whereGreaterThanOrEqualTo("timeStamp", startOfToday)
                 .orderBy("timeStamp", Query.Direction.ASCENDING)
                 .get()

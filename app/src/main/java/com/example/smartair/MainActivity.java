@@ -164,6 +164,22 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
 
+                    // Check onboarding status before dashboard.
+                    boolean onboardingDone = getSharedPreferences("onboarding", MODE_PRIVATE)
+                            .getBoolean("done_" + uid, false);
+
+                    if (!onboardingDone) {
+                        // Go to onboarding
+                        Intent intent = new Intent(MainActivity.this, OnboardingActivity.class);
+                        intent.putExtra(KEY_ROLE, actualRole);
+                        if (ROLE_PARENT.equals(actualRole)) {
+                            intent.putExtra(PARENT_UID, uid);
+                        }
+                        startActivity(intent);
+                        finish();
+                        return;
+                    }
+
                     // right role
                     Toast.makeText(MainActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
                     Intent intent;

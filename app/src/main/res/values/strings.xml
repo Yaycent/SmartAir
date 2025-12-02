@@ -107,7 +107,7 @@
     <string name="sos_yes">Yes</string>
     <string name="sos_no">No</string>
 
-    <string name="calling_911">Emergency detected. Calling 911...</string>
+    <string name="calling_911">Emergency detected. Calling 911…</string>
 
     <string name="sos_next">Next</string>
 
@@ -118,6 +118,51 @@
 
     <string name="sos_missing_input">Please answer all questions.</string>
     <string name="sos_missing_secondary">Please fill out both field.</string>
+
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_done">Done</string>
+
+    <string name="on_parent_privacy_title">Privacy First</string>
+    <string name="on_parent_privacy_text">
+    By default, providers cannot see any data unless you explicitly choose to share it.
+    </string>
+
+    <string name="on_parent_addchild_title">Add Your Child</string>
+    <string name="on_parent_addchild_text">
+    Begin by creating your child\'s profile and setting up the Asthma Action Plan.
+    </string>
+
+    <string name="on_parent_invite_title">Invite a Provider</string>
+    <string name="on_parent_invite_text">
+    Generate a 7-day valid invitation code so a provider can access your child’s reports.
+    </string>
+
+    <string name="on_provider_readonly_title">Read-only Access</string>
+    <string name="on_provider_readonly_text">
+    You may view patient data, but cannot modify any treatment plans.
+    </string>
+
+    <string name="on_provider_invite_title">Enter Invitation Code</string>
+    <string name="on_provider_invite_text">
+    Please request an invitation code from the child’s parent to unlock data access.
+    </string>
+
+    <string name="on_child_sos_title">Emergency Button</string>
+    <string name="on_child_sos_text">
+    If you feel trouble breathing, tap the red SOS button!
+    </string>
+
+    <string name="on_child_tasks_title">Daily Tasks</string>
+    <string name="on_child_tasks_text">
+    Remember to complete your daily controller tasks and earn badges!
+    </string>
+
+    <string name="on_child_privacy_title">Your Privacy</string>
+    <string name="on_child_privacy_text">
+    Only your parents and trusted providers can see your records.
+    </string>
+
 
 
 </resources>

@@ -14,6 +14,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAir">
         <activity
+            android:name=".OnboardingActivity"
+            android:exported="false" />
+        <activity
             android:name=".SettingActivity"
             android:exported="false" />
         <activity

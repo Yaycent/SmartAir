@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,10 +39,12 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
@@ -55,9 +58,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -80,6 +85,10 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private TextView tvRescueSummary;
     private ListenerRegistration medicineListener;
     private ListenerRegistration medicineListListener;
+
+    private MaterialCardView cardEmergencyAlerts;
+    private LinearLayout containerEmergencyAlerts;
+
 
     // Firebase
     private FirebaseFirestore db;
@@ -137,6 +146,9 @@ public class ParentDashboardActivity extends AppCompatActivity {
         rescueManager = new RescueUsageManager();
 
         tvRescueSummary = findViewById(R.id.tvRescueSummary);
+        cardEmergencyAlerts = findViewById(R.id.cardEmergencyAlerts);
+        containerEmergencyAlerts = findViewById(R.id.containerEmergencyAlerts);
+
 
 
         // sos setting
@@ -151,6 +163,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        loadEmergencyAlerts();
 
         if (parentUid == null && FirebaseAuth.getInstance().getCurrentUser() != null) {
             parentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -819,20 +832,37 @@ public class ParentDashboardActivity extends AppCompatActivity {
      */
     private void showAlertPopup(String alertId, String childName, String message) {
 
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Alert for " + childName)
                 .setMessage(message)
                 .setCancelable(false)
-                .setPositiveButton("OK", (dialog, which) -> {
-                    // Mark this alert as processed
-                    db.collection("parentAlerts")
-                            .document(alertId)
-                            .update("processed", true);
-
-                    dialog.dismiss();
+                .setPositiveButton("OK", (d, w) -> {
+                    db.collection("parentAlerts").document(alertId).update("processed", true);
+                    d.dismiss();
                 })
-                .show();
+                .create();
+
+        dialog.show();
+
+
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.alert_red_background);
+
+
+        Button okButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+
+        if (okButton != null) {
+
+            okButton.setBackground(null);
+
+            okButton.setTextColor(Color.WHITE);
+            okButton.setAllCaps(false);
+
+            okButton.setMinWidth(200);
+            okButton.setPadding(40, 20, 40, 20);
+        }
     }
+
+
     // sos setting
     private void checkAndInitActionPlan() {
         DocumentReference docRef = db.collection("users").document(parentUid)
@@ -955,5 +985,49 @@ public class ParentDashboardActivity extends AppCompatActivity {
             rescueManager.stop();
         }
     }
+
+    private void loadEmergencyAlerts() {
+
+        long cutoffMillis = System.currentTimeMillis() - 24L * 60 * 60 * 1000;
+        Timestamp cutoff = new Timestamp(new Date(cutoffMillis));
+
+        db.collection("parentAlerts")
+                .whereEqualTo("parentUid", parentUid)
+                .whereGreaterThan("timestamp", cutoff)
+                .orderBy("timestamp", Query.Direction.DESCENDING)  // 先按时间从新到旧
+                .limit(3)                                           // 最新 3 条
+                .get()
+                .addOnSuccessListener(snap -> {
+
+                    containerEmergencyAlerts.removeAllViews();
+
+                    if (snap.isEmpty()) {
+                        cardEmergencyAlerts.setVisibility(View.GONE);  // 没 alert → 隐藏卡片
+                        return;
+                    }
+
+                    cardEmergencyAlerts.setVisibility(View.VISIBLE);
+
+                    // 倒序后，要手动翻转回来，让 UI 从旧到新显示
+                    List<DocumentSnapshot> docs = snap.getDocuments();
+                    Collections.reverse(docs);
+
+                    for (DocumentSnapshot doc : docs) {
+                        String message = doc.getString("message");
+
+                        TextView tv = new TextView(this);
+                        tv.setText("• " + message);
+                        tv.setTextSize(14);
+                        tv.setTextColor(Color.parseColor("#D32F2F"));
+                        tv.setPadding(0, 6, 0, 6);
+
+                        containerEmergencyAlerts.addView(tv);
+                    }
+                });
+    }
+
+
+
+
 
 }

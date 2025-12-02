@@ -28,6 +28,9 @@ public class OnboardingActivity extends AppCompatActivity {
     private String userRole; // Parent / Child / Provider
     private String userUid;
 
+    private String childName; // only for child
+    private String parentUid; // only for child
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +45,10 @@ public class OnboardingActivity extends AppCompatActivity {
 
         // Retrieve role passed from login / register screen
         userRole = getIntent().getStringExtra(KEY_ROLE);
-        userUid = getIntent().getStringExtra(PARENT_UID);
+        userUid = getIntent().getStringExtra("USER_UID");
+
+        childName = getIntent().getStringExtra("CHILD_NAME");
+        parentUid = getIntent().getStringExtra("PARENT_UID");
 
         initViews();
         initPages();
@@ -164,7 +170,7 @@ public class OnboardingActivity extends AppCompatActivity {
     private void finishOnboarding() {
         SharedPreferences prefs = getSharedPreferences("onboarding", MODE_PRIVATE);
         prefs.edit()
-                .putBoolean("done_" + userUid, true)
+                .putBoolean("done_" + userRole + "_" + userUid, true)
                 .apply();
 
         Intent intent;
@@ -180,6 +186,9 @@ public class OnboardingActivity extends AppCompatActivity {
                 break;
             case ROLE_CHILD:
                 intent = new Intent(this, ChildDashboardActivity.class);
+                intent.putExtra("CHILD_UID", userUid);
+                intent.putExtra("CHILD_NAME", childName);
+                intent.putExtra("PARENT_UID", parentUid);
                 break;
             default:
                 finish();

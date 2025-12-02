@@ -163,10 +163,10 @@
                 android:layout_width="0dp"
                 android:layout_height="300dp"
                 android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="120dp"
+                android:layout_marginTop="24dp"
                 android:background="#0DF5A623"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintHorizontal_bias="0.625"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/spinnerTimeRange" />
 

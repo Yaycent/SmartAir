@@ -165,7 +165,7 @@ public class SettingActivity extends AppCompatActivity {
                 .set(data, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show();
-                    // 更新 UI 显示最终值
+                    // Update UI to display final value
                     editGreen.setText(finalGreenText);
                     editYellow.setText(finalYellowText);
                     editRed.setText(finalRedText);

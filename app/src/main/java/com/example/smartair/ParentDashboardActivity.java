@@ -473,7 +473,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
     }
 
     private void loadPEFData(String childUid, int days) {
-
         long now = System.currentTimeMillis();
         long from = now - days * 24L * 60 * 60 * 1000;
 
@@ -490,15 +489,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     SimpleDateFormat dayFormat = new SimpleDateFormat("yyyy-MM-dd");
 
                     for (QueryDocumentSnapshot log : query) {
-
                         long ts = log.getLong("timeStamp");
                         float value = log.getDouble("value").floatValue();
                         String tag = log.getString("tag");
                         if (tag == null) tag = "";
 
                         String day = dayFormat.format(new Date(ts));
-
-
                         dailyValues.put(day, value);
                         dailyTags.put(day, tag);
                     }
@@ -509,182 +505,139 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     Calendar cal = Calendar.getInstance();
                     cal.add(Calendar.DAY_OF_YEAR, -(days - 1));
 
+                    // 遍历过去 N 天，确保每一天都在图表上有位置（即使是空值）
                     for (int i = 0; i < days; i++) {
                         String day = dayFormat.format(cal.getTime());
-                        float x = i;
+                        float x = i; // X轴索引：0, 1, 2...
 
                         if (dailyValues.containsKey(day)) {
                             finalEntries.add(new Entry(x, dailyValues.get(day)));
                             finalTags.add(dailyTags.get(day));
                         } else {
+                            // 这是一个优化的点：如果那天没数据，是否要显示空断点？
+                            // 之前的逻辑是显示 Float.NaN，这会导致线条断开，看起来比较清楚
                             finalEntries.add(new Entry(x, Float.NaN));
                             finalTags.add("");
                         }
-
                         cal.add(Calendar.DAY_OF_YEAR, 1);
                     }
 
-
+                    // 获取孩子的 PB 值来画绿/黄线
                     db.collection("children").document(childUid)
                             .get()
                             .addOnSuccessListener(doc -> {
                                 Double PB = doc.getDouble("childPB");
                                 if (PB == null) PB = 0.0;
 
-                                drawPEFChart(finalEntries, finalTags, PB);
+                                // 调用新的绘图方法
+                                drawPEFChart(finalEntries, finalTags, PB, days);
                             });
                 });
     }
 
-
-    private void drawPEFChart(ArrayList<Entry> entries, ArrayList<String> tags, double PB) {
+    private void drawPEFChart(ArrayList<Entry> entries, ArrayList<String> tags, double PB, int days) {
 
         if (entries.isEmpty()) {
             chartPEF.clear();
-            chartPEF.setNoDataText("No PEF data yet");
+            chartPEF.setNoDataText("No PEF data available.");
             return;
         }
 
         LineDataSet set = new LineDataSet(entries, "PEF");
-
         set.setLineWidth(2f);
         set.setCircleRadius(4f);
         set.setColor(Color.BLUE);
         set.setCircleColor(Color.BLUE);
-        set.setDrawValues(false);
+        set.setDrawValues(false); // 不要在点上直接显示数字，太乱
         set.setMode(LineDataSet.Mode.LINEAR);
         set.setDrawCircles(true);
+        set.setDrawCircleHole(false); // 实心圆点更好看
 
-
-        set.setDrawHighlightIndicators(false);
+        // 优化：处理空数据时的断线逻辑
         set.setDrawFilled(false);
-        set.setFormLineWidth(1f);
 
         LineData data = new LineData(set);
         chartPEF.setData(data);
 
-        // Y Axis
+        // --- Y Axis (左侧) ---
         YAxis left = chartPEF.getAxisLeft();
         left.removeAllLimitLines();
-
         left.setAxisMinimum(0f);
-        left.setAxisMaximum((float) PB);
 
-        float green = (float) (PB * 0.8);
-        float yellow = (float) (PB * 0.5);
+        // 【改进点】最大值设置为 PB 的 1.1 倍，或者是 600 (如果没有 PB)，防止折线顶格
+        float maxVal = (float) (PB > 0 ? PB * 1.1 : 600);
+        left.setAxisMaximum(maxVal);
 
-        LimitLine greenZone = new LimitLine(green, "");
-        greenZone.setLineWidth(0f);
+        // 只有当 PB 有效时才画分区线
+        if (PB > 0) {
+            float green = (float) (PB * 0.8);
+            float yellow = (float) (PB * 0.5);
 
-        LimitLine yellowZone = new LimitLine(yellow, "");
-        yellowZone.setLineWidth(0f);
+            LimitLine greenLine = new LimitLine(green, "Green Zone");
+            greenLine.setLineColor(Color.GREEN);
+            greenLine.setLineWidth(2f);
+            greenLine.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP); // 标签放右边
 
-        left.addLimitLine(greenZone);
-        left.addLimitLine(yellowZone);
+            LimitLine yellowLine = new LimitLine(yellow, "Yellow Zone");
+            yellowLine.setLineColor(Color.YELLOW);
+            yellowLine.setLineWidth(2f);
+            yellowLine.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
 
-        chartPEF.getAxisRight().setEnabled(false);
+            left.addLimitLine(greenLine);
+            left.addLimitLine(yellowLine);
+        }
+
+        // --- Axis Settings ---
+        chartPEF.getAxisRight().setEnabled(false); // 隐藏右侧轴
 
         XAxis xAxis = chartPEF.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setGranularity(1f);
-        xAxis.setGranularityEnabled(true);
+        xAxis.setGranularity(1f); // 确保间隔是 1
+        xAxis.setDrawGridLines(false); // X轴不画网格线，看起来更干净
 
-        xAxis.setAvoidFirstLastClipping(false);
-        xAxis.setCenterAxisLabels(false);
-
-        chartPEF.setVisibleXRangeMinimum(entries.size());
-        chartPEF.setVisibleXRangeMaximum(entries.size());
-
-        ArrayList<String> xLabels = new ArrayList<>();
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, -(entries.size() - 1));
-
-        SimpleDateFormat fmt = new SimpleDateFormat("MM/dd");
-
-        for (int i = 0; i < entries.size(); i++) {
-            xLabels.add(fmt.format(cal.getTime()));
-            cal.add(Calendar.DAY_OF_YEAR, 1);
-        }
-
-
-        xAxis.setLabelCount(xLabels.size(), true);
-
-
-        boolean isThirtyDays = (entries.size() > 10);
-        SimpleDateFormat fmtFull = new SimpleDateFormat("MM/dd");
+        // 【改进点】X轴日期格式化 (复用 Provider 的逻辑)
+        final SimpleDateFormat fmt = new SimpleDateFormat("MM/dd");
+        final long now = System.currentTimeMillis();
+        final long dayMillis = 24 * 60 * 60 * 1000L;
+        // 计算起始时间戳 (当前时间 - (天数-1)天)
+        final long startTimestamp = now - (days - 1) * dayMillis;
 
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String getAxisLabel(float value, AxisBase axis) {
-
-                int index = (int) value;
-                if (index < 0 || index >= xLabels.size()) return "";
-
-                String date = xLabels.get(index);
-                String dayStr = date.substring(3, 5);
-                int day = Integer.parseInt(dayStr);
-
-                // 7 Days: Show all
-                if (!isThirtyDays) {
-                    return date;
-
-                }
-
-                if (isThirtyDays) {
-                    xAxis.setLabelRotationAngle(0f);
-                    xAxis.setAvoidFirstLastClipping(false);
-                    xAxis.setGranularity(1f);
-                    xAxis.setGranularityEnabled(true);
-
-
-                    xAxis.setSpaceMin(0f);
-                    xAxis.setSpaceMax(0f);
-                    xAxis.setLabelCount(xLabels.size());
-                    xAxis.setDrawLabels(true);
-                }
-
-
-                //30 Days: show 5/10/15/20/25
-                if (day == 5 || day == 10 || day == 15 || day == 20 || day == 25)
-                    return date;
-
-                // Month end: auto detect
-                Calendar c = Calendar.getInstance();
-                try {
-                    c.setTime(fmtFull.parse(date));
-                } catch (Exception ignored) {}
-
-                int maxDay = c.getActualMaximum(Calendar.DAY_OF_MONTH);
-                if (day == maxDay)
-                    return date;
-
-                return "";
+                // value 是索引 (0, 1, 2...)
+                // 索引 * 一天的毫秒数 + 起始时间 = 那一天的日期
+                long dateMillis = startTimestamp + (long)(value * dayMillis);
+                return fmt.format(new Date(dateMillis));
             }
         });
 
+        // --- 交互设置 ---
+        // 保留点击显示 Tag 的功能
         chartPEF.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
-                int index = entries.indexOf(e);
-                String tag = tags.get(index);
-                Toast.makeText(ParentDashboardActivity.this, "Tag: " + tag, Toast.LENGTH_SHORT).show();
+                // entries 中的 index 对应 X 轴的值
+                int index = (int) e.getX();
+                if (index >= 0 && index < tags.size()) {
+                    String tag = tags.get(index);
+                    if (tag != null && !tag.isEmpty()) {
+                        Toast.makeText(ParentDashboardActivity.this, "Note: " + tag, Toast.LENGTH_SHORT).show();
+                    }
+                }
             }
             @Override
             public void onNothingSelected() {}
         });
 
-
+        chartPEF.getDescription().setEnabled(false); // 隐藏右下角的 Description Label
         chartPEF.setDragEnabled(false);
         chartPEF.setScaleEnabled(false);
         chartPEF.setPinchZoom(false);
-        chartPEF.setDoubleTapToZoomEnabled(false);
-        chartPEF.setHighlightPerDragEnabled(false);
-        chartPEF.getViewPortHandler().setMaximumScaleX(1f);
-        chartPEF.getViewPortHandler().setMaximumScaleY(1f);
 
+        // 刷新图表
         chartPEF.invalidate();
     }
-
 
     private void fetchTodayPEFZone(String childUid) {
 
@@ -720,7 +673,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     updateDashboardZoneUI("Error");
                 });
     }
-
 
     private void updateDashboardZoneUI(String zone) {
         if (textViewTodayPEFZone == null) return;
@@ -986,25 +938,21 @@ public class ParentDashboardActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
-        // 移除药品列表监听
         if (medicineListListener != null) {
             medicineListListener.remove();
             medicineListListener = null;
         }
 
-        // 移除单个报警监听
         if (singleAlertListener != null) {
             singleAlertListener.remove();
             singleAlertListener = null;
         }
 
-        // 移除之前的药品监听（你代码里原有的）
         if (medicineListener != null) {
             medicineListener.remove();
             medicineListener = null;
         }
 
-        // 停止救援管理器
         if (rescueManager != null) {
             rescueManager.stop();
         }

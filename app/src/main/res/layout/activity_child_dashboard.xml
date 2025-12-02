@@ -183,7 +183,6 @@
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:gravity="center_vertical|start"
         android:paddingStart="24dp"
         android:paddingEnd="24dp"
         android:background="@drawable/bg_btn_rescue"

@@ -887,6 +887,14 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 .setTitle("Generate Invitation Code")
                 .setItems(options, (dialog, which) -> {
                     String forWho = (which == 0) ? "child" : "provider";
+
+                    if ("child".equals(forWho)) {
+                        if (activeChildUid == null || activeChildUid.equals("NONE")) {
+                            Toast.makeText(this, "Please select a child first!", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                    }
+
                     generateAndSaveCode(forWho);
                 })
                 .show();
@@ -909,11 +917,19 @@ public class ParentDashboardActivity extends AppCompatActivity {
         inviteData.put("expiresAt", expiresAt);
         inviteData.put("isUsed", false);
 
+        if ("child".equals(forWho)) {
+            inviteData.put("targetChildId", activeChildUid);
+            inviteData.put("targetChildName", activeChildName);
+        }
+
         // Firestore "invites"
         FirebaseFirestore.getInstance().collection("invites").document(codeString)
                 .set(inviteData)
                 .addOnSuccessListener(aVoid -> {
-                    showCodeSuccessDialog(codeString, forWho);
+                    String msg = "child".equals(forWho)
+                            ? "Code for " + activeChildName
+                            : "Code for Provider";
+                    showCodeSuccessDialog(codeString, msg);
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to generate code", Toast.LENGTH_SHORT).show();

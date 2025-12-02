@@ -45,6 +45,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
@@ -88,6 +89,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
     private MaterialCardView cardEmergencyAlerts;
     private LinearLayout containerEmergencyAlerts;
+    private TextView tagSharedMeds, tagSharedPEF, tagSharedSymptoms;
 
 
     // Firebase
@@ -177,6 +179,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
         listenForSingleAlert();
         if (activeChildUid != null) {
             loadMedicines(activeChildUid);
+            checkSharingStatus(activeChildUid);
         }
     }
     private void initViews() {
@@ -193,6 +196,9 @@ public class ParentDashboardActivity extends AppCompatActivity {
         buttonSymptomHistory = findViewById(R.id.buttonSymptomHistory);
         View btnGenerateCode = findViewById(R.id.btnGenerateCode);
         btnGenerateCode.setOnClickListener(v -> showGenerateCodeDialog());
+        tagSharedMeds = findViewById(R.id.tagSharedMeds);
+        tagSharedPEF = findViewById(R.id.tagSharedPEF);
+        tagSharedSymptoms = findViewById(R.id.tagSharedSymptoms);
 
 
         // Spinner
@@ -214,6 +220,8 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 activeChildName = childNames.get(position);
 
                 Log.d(TAG, "Selected child: " + activeChildUid);
+
+                checkSharingStatus(activeChildUid);
                 loadMedicines(activeChildUid);
                 if (rescueManager != null) {
                     rescueManager.startListening(parentUid, activeChildUid);
@@ -1026,7 +1034,39 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 });
     }
 
+    private void checkSharingStatus(String childUid) {
+        if (childUid == null || childUid.equals("NONE")) {
+            hideAllTags();
+            return;
+        }
 
+        db.collection("children").document(childUid).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Boolean bMeds = doc.getBoolean("sharingSettings.shareMeds");
+                        Boolean bPEF = doc.getBoolean("sharingSettings.sharePEF");
+                        Boolean bSymp = doc.getBoolean("sharingSettings.shareSymptoms");
+                        if (tagSharedMeds != null) {
+                            tagSharedMeds.setVisibility(Boolean.TRUE.equals(bMeds) ? View.VISIBLE : View.GONE);
+                        }
+                        if (tagSharedPEF != null) {
+                            tagSharedPEF.setVisibility(Boolean.TRUE.equals(bPEF) ? View.VISIBLE : View.GONE);
+                        }
+                        if (tagSharedSymptoms != null) {
+                            tagSharedSymptoms.setVisibility(Boolean.TRUE.equals(bSymp) ? View.VISIBLE : View.GONE);
+                        }
+                    } else {
+                        hideAllTags();
+                    }
+                })
+                .addOnFailureListener(e -> hideAllTags());
+    }
+
+    private void hideAllTags() {
+        if (tagSharedMeds != null) tagSharedMeds.setVisibility(View.GONE);
+        if (tagSharedPEF != null) tagSharedPEF.setVisibility(View.GONE);
+        if (tagSharedSymptoms != null) tagSharedSymptoms.setVisibility(View.GONE);
+    }
 
 
 

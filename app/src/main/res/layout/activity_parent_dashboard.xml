@@ -9,7 +9,6 @@
     android:background="#FFF7EC"
     tools:context=".ParentDashboardActivity">
 
-    <!-- Top greeting -->
     <TextView
         android:id="@+id/tvHiParent"
         android:layout_width="wrap_content"
@@ -23,48 +22,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
-    <!-- Emergency Alerts -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardEmergencyAlerts"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginHorizontal="20dp"
-        android:padding="12dp"
-        android:visibility="gone"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="3dp"
-        app:cardBackgroundColor="#FFF2E5E5"
-        app:layout_constraintTop_toBottomOf="@id/tvHiParent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvEmergencyTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="⚠️ Alerts"
-                android:textColor="#D32F2F"
-                android:textSize="15sp"
-                android:textStyle="bold"/>
-
-            <LinearLayout
-                android:id="@+id/containerEmergencyAlerts"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="6dp"
-                android:padding="4dp"/>
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Viewing label -->
     <TextView
         android:id="@+id/tvViewingLabel"
         android:layout_width="wrap_content"
@@ -74,13 +31,12 @@
         android:textColor="#333333"
         android:textSize="16sp"
         app:layout_constraintStart_toStartOf="@id/tvHiParent"
-        app:layout_constraintTop_toBottomOf="@id/cardEmergencyAlerts"/>
+        app:layout_constraintTop_toBottomOf="@id/tvHiParent"/>
 
-    <!-- Child selector spinner -->
     <Spinner
         android:id="@+id/spinnerChildren"
         android:layout_width="wrap_content"
-        android:layout_height="40dp"
+        android:layout_height="45dp"
         android:minWidth="120dp"
         android:layout_marginStart="10dp"
         android:background="@drawable/spinner_button_style"
@@ -89,7 +45,6 @@
         app:layout_constraintStart_toEndOf="@id/tvViewingLabel"
         app:layout_constraintTop_toTopOf="@id/tvViewingLabel"/>
 
-    <!-- Scrollable area -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -106,7 +61,46 @@
             android:layout_height="wrap_content"
             android:paddingBottom="20dp">
 
-            <!-- Medicine Inventory Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardEmergencyAlerts"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginHorizontal="20dp"
+                android:padding="12dp"
+                android:visibility="gone"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFF2E5E5"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvEmergencyTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⚠️ Alerts"
+                        android:textColor="#D32F2F"
+                        android:textSize="15sp"
+                        android:textStyle="bold"/>
+
+                    <LinearLayout
+                        android:id="@+id/containerEmergencyAlerts"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="6dp"
+                        android:padding="4dp"/>
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardMedicationInventory"
                 android:layout_width="0dp"
@@ -116,7 +110,7 @@
                 app:cardCornerRadius="14dp"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="@android:color/transparent"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/cardEmergencyAlerts"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
@@ -136,6 +130,19 @@
                         android:textStyle="bold"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"/>
+
+                    <TextView
+                        android:id="@+id/tagSharedMeds"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Shared with Provider"
+                        android:textSize="10sp"
+                        android:textColor="#1976D2"
+                        android:background="@drawable/bg_shared_tag"
+                        android:visibility="gone"
+                        android:layout_marginTop="4dp"
+                        app:layout_constraintStart_toStartOf="@id/textInventoryTitle"
+                        app:layout_constraintTop_toBottomOf="@id/textInventoryTitle" />
 
                     <Button
                         android:id="@+id/buttonAddMedicine"
@@ -177,7 +184,6 @@
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Time Range -->
             <Spinner
                 android:id="@+id/spinnerTimeRange"
                 android:layout_width="wrap_content"
@@ -186,6 +192,20 @@
                 android:layout_marginStart="16dp"
                 app:layout_constraintTop_toBottomOf="@id/cardMedicationInventory"
                 app:layout_constraintStart_toStartOf="parent"/>
+
+            <TextView
+                android:id="@+id/tagSharedPEF"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Shared with Provider"
+                android:textSize="10sp"
+                android:textColor="#1976D2"
+                android:background="@drawable/bg_shared_tag"
+                android:visibility="gone"
+                android:layout_marginStart="8dp"
+                app:layout_constraintBottom_toBottomOf="@id/spinnerTimeRange"
+                app:layout_constraintStart_toEndOf="@id/spinnerTimeRange"
+                app:layout_constraintTop_toTopOf="@id/spinnerTimeRange" />
 
             <TextView
                 android:id="@+id/textViewTodayPEFZone"
@@ -200,10 +220,6 @@
                 app:layout_constraintBottom_toBottomOf="@id/spinnerTimeRange"
                 app:layout_constraintEnd_toEndOf="parent"/>
 
-            <!-- PEF chart -->
-
-            <!-- Symptom History button -->
-
             <com.github.mikephil.charting.charts.LineChart
                 android:id="@+id/chartPEF"
                 android:layout_width="0dp"
@@ -216,20 +232,35 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/spinnerTimeRange" />
 
+            <TextView
+                android:id="@+id/tagSharedSymptoms"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Shared with Provider"
+                android:textSize="10sp"
+                android:textColor="#1976D2"
+                android:background="@drawable/bg_shared_tag"
+                android:visibility="gone"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="20dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/buttonSymptomHistory" />
+
             <Button
                 android:id="@+id/buttonSymptomHistory"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
                 android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="20dp"
+                android:backgroundTint="#F5A423"
                 android:paddingVertical="12dp"
                 android:text="Symptom History"
-                android:textStyle="bold"
                 android:textColor="#FFFFFF"
-                android:backgroundTint="#F5A423"
-                app:layout_constraintStart_toStartOf="parent"
+                android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/chartPEF"/>
+                app:layout_constraintHorizontal_bias="0.6"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/chartPEF" />
 
             <TextView
                 android:id="@+id/tvLogout"
@@ -247,7 +278,6 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Bar -->
     <View
         android:id="@+id/bottomBarBackground"
         android:layout_width="match_parent"
@@ -255,7 +285,6 @@
         android:background="#F5A849"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
-    <!-- Manage Children -->
     <TextView
         android:id="@+id/buttonAddChild"
         android:layout_width="wrap_content"
@@ -273,7 +302,6 @@
         app:layout_constraintTop_toTopOf="@id/bottomBarBackground"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
-    <!-- Invite Code -->
     <TextView
         android:id="@+id/btnGenerateCode"
         android:layout_width="wrap_content"
@@ -287,14 +315,10 @@
         android:lines="2"
         app:drawableTopCompat="@drawable/ic_invite_code"
         android:drawablePadding="4dp"
-
         app:layout_constraintTop_toTopOf="@id/bottomBarBackground"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/buttonAddChild"
-        />
+        app:layout_constraintStart_toEndOf="@id/buttonAddChild"/>
 
-
-    <!-- Settings -->
     <TextView
         android:id="@+id/btnSettings"
         android:layout_width="wrap_content"
@@ -311,7 +335,6 @@
         app:layout_constraintTop_toTopOf="@id/bottomBarBackground"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
-    <!-- Child Dashboard Button -->
     <FrameLayout
         android:id="@+id/tvGoToChildDashboard"
         android:layout_width="wrap_content"

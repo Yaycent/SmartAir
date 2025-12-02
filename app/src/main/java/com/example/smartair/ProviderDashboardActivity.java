@@ -114,7 +114,6 @@ public class ProviderDashboardActivity extends AppCompatActivity {
 
         initViews();
         loadLinkedPatients();
-        loadSharedEmergencyAlertsForProvider(parentUid);
 
     }
 
@@ -309,6 +308,13 @@ public class ProviderDashboardActivity extends AppCompatActivity {
                 .addSnapshotListener((snapshot, e) -> {
                     if (e != null || snapshot == null || !snapshot.exists()) return;
 
+                    if (snapshot.contains("parentId")) {
+                        parentUid = snapshot.getString("parentId");
+                        if (parentUid != null) {
+                            loadSharedEmergencyAlertsForProvider(parentUid);
+                        }
+                    }
+
                     boolean shareMeds = false;
                     boolean sharePEF = false;
                     boolean shareSymptoms = false;
@@ -377,12 +383,14 @@ public class ProviderDashboardActivity extends AppCompatActivity {
         }
 
         // 4. Triage
-        if (shareTriage) {
-            findViewById(R.id.btnOneTapTriage).setVisibility(View.VISIBLE);
-        } else {
-            findViewById(R.id.btnOneTapTriage).setVisibility(View.GONE);
+        View triageBtn = findViewById(R.id.btnOneTapTriage);
+        if (triageBtn != null) {
+            if (shareTriage) {
+                triageBtn.setVisibility(View.VISIBLE);
+            } else {
+                triageBtn.setVisibility(View.GONE);
+            }
         }
-
     }
 
     private void stopPatientDataListeners() {
@@ -439,6 +447,10 @@ public class ProviderDashboardActivity extends AppCompatActivity {
         textViewTodayPEFZone.setText("Today's Zone: -");
         chartPEF.clear();
         chartPEF.invalidate();
+
+        findViewById(R.id.layoutEmergencyAlerts).setVisibility(View.GONE);
+        LinearLayout list = findViewById(R.id.layoutAlertList);
+        list.removeAllViews();
     }
 
     private void loadMedicines(String childUid) {

@@ -147,7 +147,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
         buttonController.setOnClickListener(view -> handleControllerCheck());
 
         // --- Check-in ---
-        Button buttonCheckin = findViewById(R.id.buttonCheckin);
+        TextView buttonCheckin = findViewById(R.id.buttonCheckin);
         buttonCheckin.setOnClickListener(v -> {
             if (childUid == null) {
                 Toast.makeText(this, "Error: Child UID is missing!", Toast.LENGTH_SHORT).show();

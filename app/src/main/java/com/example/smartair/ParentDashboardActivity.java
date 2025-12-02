@@ -11,12 +11,15 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -56,6 +59,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Random;
 
 import static com.example.smartair.Constants.*;
 
@@ -65,20 +69,17 @@ public class ParentDashboardActivity extends AppCompatActivity {
     // UI components
     private Spinner spinnerChild;
     private Spinner spinnerRange;
-    private Button buttonAddChild;
-    private TextView tvGoToChildDashboard;
+    private TextView buttonAddChild;
+    private FrameLayout tvGoToChildDashboard;
     private TextView tvLogout;
+    private Button buttonSymptomHistory;
 
     private LineChart chartPEF;
 
     private TextView textViewTodayPEFZone;
     private TextView tvRescueSummary;
     private ListenerRegistration medicineListener;
-
-
-
-
-
+    private ListenerRegistration medicineListListener;
 
     // Firebase
     private FirebaseFirestore db;
@@ -88,8 +89,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private ArrayList<String> childNames = new ArrayList<>();
     private ArrayList<String> childIds = new ArrayList<>();
     private String parentUid;
-
-
+    private boolean shouldReloadChildren = false;
     private String activeChildUid = null;
     private String activeChildName = null;
 
@@ -139,9 +139,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
         tvRescueSummary = findViewById(R.id.tvRescueSummary);
 
 
-
-
-
         // sos setting
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             parentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -159,7 +156,11 @@ public class ParentDashboardActivity extends AppCompatActivity {
             parentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         }
 
-        loadChildrenFromFirestore();
+        if (shouldReloadChildren) {
+            loadChildrenFromFirestore();
+            shouldReloadChildren = false;
+        }
+
         listenForSingleAlert();
         if (activeChildUid != null) {
             loadMedicines(activeChildUid);
@@ -172,10 +173,14 @@ public class ParentDashboardActivity extends AppCompatActivity {
         tvLogout = findViewById(R.id.tvLogout);
         recyclerView = findViewById(R.id.recyclerMedicineInventory);
         Button buttonAddMedicine = findViewById(R.id.buttonAddMedicine);
-        ImageButton btnSettings = findViewById(R.id.btnSettings);
+        TextView btnSettings = findViewById(R.id.btnSettings);
         spinnerRange = findViewById(R.id.spinnerTimeRange);
         chartPEF = findViewById(R.id.chartPEF);
         textViewTodayPEFZone = findViewById(R.id.textViewTodayPEFZone);
+        buttonSymptomHistory = findViewById(R.id.buttonSymptomHistory);
+        View btnGenerateCode = findViewById(R.id.btnGenerateCode);
+        btnGenerateCode.setOnClickListener(v -> showGenerateCodeDialog());
+
 
         // Spinner
         spinnerChild.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -203,15 +208,13 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 findRescueMedicineAndListen(activeChildUid);
 
 
-                if (position > 0) {
-                    if (position < childIds.size()) {
-                        String childId = childIds.get(position);
-                        int days = (spinnerRange.getSelectedItemPosition() == 0) ? 7 : 30;
+                if (position < childIds.size() && position < childNames.size()) {
+                    String childUid = childIds.get(position);
+                    int days = (spinnerRange.getSelectedItemPosition() == 0) ? 7 : 30;
 
-                        fetchTodayPEFZone(childId);
+                    fetchTodayPEFZone(childUid);
 
-                        loadPEFData(childId, days);
-                    }
+                    loadPEFData(childUid, days);
                 } else {
                     chartPEF.clear();
                     chartPEF.setNoDataText("Please select a child to view PEF data.");
@@ -243,6 +246,8 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
         //Add Child
         buttonAddChild.setOnClickListener(v -> {
+            shouldReloadChildren = true;
+
             Intent intent = new Intent(ParentDashboardActivity.this, AddChildActivity.class);
             intent.putExtra(PARENT_UID, parentUid);
             startActivity(intent);
@@ -296,7 +301,37 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
         // Setting
         btnSettings.setOnClickListener(v -> {
+            // check if child
+            if (activeChildUid == null || activeChildUid.equals("NONE")) {
+                Toast.makeText(ParentDashboardActivity.this, "Please select a child first to configure settings.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             Intent intent = new Intent(ParentDashboardActivity.this, SettingActivity.class);
+            intent.putExtra("CHILD_UID", activeChildUid);
+            startActivity(intent);
+        });
+
+        buttonSymptomHistory.setOnClickListener(v -> {
+            int index = spinnerChild.getSelectedItemPosition();
+
+            Toast.makeText(ParentDashboardActivity.this,
+                    "Symptom History clicked, index = " + index, Toast.LENGTH_SHORT).show();
+
+            // 0 is "Select Child"
+            if (index <= 0) {
+                Toast.makeText(ParentDashboardActivity.this,
+                        "Please select a child first.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            String selectedChildUid = childIds.get(index);
+            String selectedChildName = childNames.get(index);
+
+            Intent intent = new Intent(ParentDashboardActivity.this, SymptomHistoryActivity.class);
+            intent.putExtra(CHILD_UID, selectedChildUid);
+            intent.putExtra(CHILD_NAME, selectedChildName);
+            intent.putExtra(PARENT_UID, parentUid);
             startActivity(intent);
         });
 
@@ -321,10 +356,10 @@ public class ParentDashboardActivity extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
-
     }
 
     private void loadChildrenFromFirestore() {
+        String currentSelectedUid = activeChildUid;
 
         db.collection("children")
                 .whereEqualTo("parentId", parentUid)
@@ -357,8 +392,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     spinnerChild.setAdapter(adapter);
 
-                    // Restore saved selection (must be AFTER adapter)
-                    if (savedChildIndex < childNames.size()) {
+                    if (currentSelectedUid != null) {
+                        int newIndex = childIds.indexOf(currentSelectedUid);
+                        if (newIndex >= 0) {
+                            spinnerChild.setSelection(newIndex);
+                        }
+                    } else if (savedChildIndex < childNames.size()) {
                         spinnerChild.setSelection(savedChildIndex);
                     }
 
@@ -378,7 +417,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
             return;
         }
 
-        db.collection("medicine")
+        if (medicineListListener != null) {
+            medicineListListener.remove();
+            medicineListListener = null;
+        }
+
+        medicineListListener = db.collection("medicine")
                 .whereEqualTo("parentUid", parentUid)
                 .whereEqualTo("childUid", childUid)
                 .addSnapshotListener((snap, e) -> {
@@ -396,12 +440,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
                             medicineList.add(item);
                         }
                     });
-                    // NEW
                     checkMedicineAlerts();
                     adapter.notifyDataSetChanged();
                 });
     }
-//ADD NEW
+
+    //ADD NEW
     private void checkMedicineAlerts() {
         if (medicineList == null || medicineList.isEmpty()) return;
         if (parentUid == null) return;
@@ -414,9 +458,8 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
             if (!low && !expiringSoon) continue;
 
-            // 如果你的 medicine 有 childUid，可以用这个；否则可以传 null 或默认孩子名
             String childUidForMed = item.getChildUid();
-            String childNameForMed = item.getChildName();   // 如果你在 medicine 里有 childName 字段，也可以加 getter
+            String childNameForMed = item.getChildName();
 
             ParentAlertHelper.alertMedicineLowOrExpired(
                     parentUid,
@@ -429,14 +472,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
         }
     }
 
-
-    private void loadPEFData(String childId, int days) {
-
+    private void loadPEFData(String childUid, int days) {
         long now = System.currentTimeMillis();
         long from = now - days * 24L * 60 * 60 * 1000;
 
         db.collection("pefLogs")
-                .whereEqualTo("childId", childId)
+                .whereEqualTo("childId", childUid)
                 .whereGreaterThan("timeStamp", from)
                 .orderBy("timeStamp")
                 .get()
@@ -448,15 +489,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     SimpleDateFormat dayFormat = new SimpleDateFormat("yyyy-MM-dd");
 
                     for (QueryDocumentSnapshot log : query) {
-
                         long ts = log.getLong("timeStamp");
                         float value = log.getDouble("value").floatValue();
                         String tag = log.getString("tag");
                         if (tag == null) tag = "";
 
                         String day = dayFormat.format(new Date(ts));
-
-
                         dailyValues.put(day, value);
                         dailyTags.put(day, tag);
                     }
@@ -467,185 +505,141 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     Calendar cal = Calendar.getInstance();
                     cal.add(Calendar.DAY_OF_YEAR, -(days - 1));
 
+                    // 遍历过去 N 天，确保每一天都在图表上有位置（即使是空值）
                     for (int i = 0; i < days; i++) {
                         String day = dayFormat.format(cal.getTime());
-                        float x = i;
+                        float x = i; // X轴索引：0, 1, 2...
 
                         if (dailyValues.containsKey(day)) {
                             finalEntries.add(new Entry(x, dailyValues.get(day)));
                             finalTags.add(dailyTags.get(day));
                         } else {
+                            // 这是一个优化的点：如果那天没数据，是否要显示空断点？
+                            // 之前的逻辑是显示 Float.NaN，这会导致线条断开，看起来比较清楚
                             finalEntries.add(new Entry(x, Float.NaN));
                             finalTags.add("");
                         }
-
                         cal.add(Calendar.DAY_OF_YEAR, 1);
                     }
 
-
-                    db.collection("children").document(childId)
+                    // 获取孩子的 PB 值来画绿/黄线
+                    db.collection("children").document(childUid)
                             .get()
                             .addOnSuccessListener(doc -> {
                                 Double PB = doc.getDouble("childPB");
                                 if (PB == null) PB = 0.0;
 
-                                drawPEFChart(finalEntries, finalTags, PB);
+                                // 调用新的绘图方法
+                                drawPEFChart(finalEntries, finalTags, PB, days);
                             });
                 });
     }
 
-
-
-    private void drawPEFChart(ArrayList<Entry> entries, ArrayList<String> tags, double PB) {
+    private void drawPEFChart(ArrayList<Entry> entries, ArrayList<String> tags, double PB, int days) {
 
         if (entries.isEmpty()) {
             chartPEF.clear();
-            chartPEF.setNoDataText("No PEF data yet");
+            chartPEF.setNoDataText("No PEF data available.");
             return;
         }
 
         LineDataSet set = new LineDataSet(entries, "PEF");
-
         set.setLineWidth(2f);
         set.setCircleRadius(4f);
         set.setColor(Color.BLUE);
         set.setCircleColor(Color.BLUE);
-        set.setDrawValues(false);
+        set.setDrawValues(false); // 不要在点上直接显示数字，太乱
         set.setMode(LineDataSet.Mode.LINEAR);
         set.setDrawCircles(true);
+        set.setDrawCircleHole(false); // 实心圆点更好看
 
-
-        set.setDrawHighlightIndicators(false);
+        // 优化：处理空数据时的断线逻辑
         set.setDrawFilled(false);
-        set.setFormLineWidth(1f);
 
         LineData data = new LineData(set);
         chartPEF.setData(data);
 
-        // Y Axis
+        // --- Y Axis (左侧) ---
         YAxis left = chartPEF.getAxisLeft();
         left.removeAllLimitLines();
-
         left.setAxisMinimum(0f);
-        left.setAxisMaximum((float) PB);
 
-        float green = (float) (PB * 0.8);
-        float yellow = (float) (PB * 0.5);
+        // 【改进点】最大值设置为 PB 的 1.1 倍，或者是 600 (如果没有 PB)，防止折线顶格
+        float maxVal = (float) (PB > 0 ? PB * 1.1 : 600);
+        left.setAxisMaximum(maxVal);
 
-        LimitLine greenZone = new LimitLine(green, "");
-        greenZone.setLineWidth(0f);
+        // 只有当 PB 有效时才画分区线
+        if (PB > 0) {
+            float green = (float) (PB * 0.8);
+            float yellow = (float) (PB * 0.5);
 
-        LimitLine yellowZone = new LimitLine(yellow, "");
-        yellowZone.setLineWidth(0f);
+            LimitLine greenLine = new LimitLine(green, "Green Zone");
+            greenLine.setLineColor(Color.GREEN);
+            greenLine.setLineWidth(2f);
+            greenLine.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP); // 标签放右边
 
-        left.addLimitLine(greenZone);
-        left.addLimitLine(yellowZone);
+            LimitLine yellowLine = new LimitLine(yellow, "Yellow Zone");
+            yellowLine.setLineColor(Color.YELLOW);
+            yellowLine.setLineWidth(2f);
+            yellowLine.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
 
-        chartPEF.getAxisRight().setEnabled(false);
+            left.addLimitLine(greenLine);
+            left.addLimitLine(yellowLine);
+        }
+
+        // --- Axis Settings ---
+        chartPEF.getAxisRight().setEnabled(false); // 隐藏右侧轴
 
         XAxis xAxis = chartPEF.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setGranularity(1f);
-        xAxis.setGranularityEnabled(true);
+        xAxis.setGranularity(1f); // 确保间隔是 1
+        xAxis.setDrawGridLines(false); // X轴不画网格线，看起来更干净
 
-        xAxis.setAvoidFirstLastClipping(false);
-        xAxis.setCenterAxisLabels(false);
-
-        chartPEF.setVisibleXRangeMinimum(entries.size());
-        chartPEF.setVisibleXRangeMaximum(entries.size());
-
-        ArrayList<String> xLabels = new ArrayList<>();
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, -(entries.size() - 1));
-
-        SimpleDateFormat fmt = new SimpleDateFormat("MM/dd");
-
-        for (int i = 0; i < entries.size(); i++) {
-            xLabels.add(fmt.format(cal.getTime()));
-            cal.add(Calendar.DAY_OF_YEAR, 1);
-        }
-
-
-        xAxis.setLabelCount(xLabels.size(), true);
-
-
-        boolean isThirtyDays = (entries.size() > 10);
-        SimpleDateFormat fmtFull = new SimpleDateFormat("MM/dd");
+        // 【改进点】X轴日期格式化 (复用 Provider 的逻辑)
+        final SimpleDateFormat fmt = new SimpleDateFormat("MM/dd");
+        final long now = System.currentTimeMillis();
+        final long dayMillis = 24 * 60 * 60 * 1000L;
+        // 计算起始时间戳 (当前时间 - (天数-1)天)
+        final long startTimestamp = now - (days - 1) * dayMillis;
 
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String getAxisLabel(float value, AxisBase axis) {
-
-                int index = (int) value;
-                if (index < 0 || index >= xLabels.size()) return "";
-
-                String date = xLabels.get(index);
-                String dayStr = date.substring(3, 5);
-                int day = Integer.parseInt(dayStr);
-
-                // 7 Days: Show all
-                if (!isThirtyDays) {
-                    return date;
-
-                }
-
-                if (isThirtyDays) {
-                    xAxis.setLabelRotationAngle(0f);
-                    xAxis.setAvoidFirstLastClipping(false);
-                    xAxis.setGranularity(1f);
-                    xAxis.setGranularityEnabled(true);
-
-
-                    xAxis.setSpaceMin(0f);
-                    xAxis.setSpaceMax(0f);
-                    xAxis.setLabelCount(xLabels.size());
-                    xAxis.setDrawLabels(true);
-                }
-
-
-                //30 Days: show 5/10/15/20/25
-                if (day == 5 || day == 10 || day == 15 || day == 20 || day == 25)
-                    return date;
-
-                // Month end: auto detect
-                Calendar c = Calendar.getInstance();
-                try {
-                    c.setTime(fmtFull.parse(date));
-                } catch (Exception ignored) {}
-
-                int maxDay = c.getActualMaximum(Calendar.DAY_OF_MONTH);
-                if (day == maxDay)
-                    return date;
-
-                return "";
+                // value 是索引 (0, 1, 2...)
+                // 索引 * 一天的毫秒数 + 起始时间 = 那一天的日期
+                long dateMillis = startTimestamp + (long)(value * dayMillis);
+                return fmt.format(new Date(dateMillis));
             }
         });
 
+        // --- 交互设置 ---
+        // 保留点击显示 Tag 的功能
         chartPEF.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
-                int index = entries.indexOf(e);
-                String tag = tags.get(index);
-                Toast.makeText(ParentDashboardActivity.this, "Tag: " + tag, Toast.LENGTH_SHORT).show();
+                // entries 中的 index 对应 X 轴的值
+                int index = (int) e.getX();
+                if (index >= 0 && index < tags.size()) {
+                    String tag = tags.get(index);
+                    if (tag != null && !tag.isEmpty()) {
+                        Toast.makeText(ParentDashboardActivity.this, "Note: " + tag, Toast.LENGTH_SHORT).show();
+                    }
+                }
             }
             @Override
             public void onNothingSelected() {}
         });
 
-
+        chartPEF.getDescription().setEnabled(false); // 隐藏右下角的 Description Label
         chartPEF.setDragEnabled(false);
         chartPEF.setScaleEnabled(false);
         chartPEF.setPinchZoom(false);
-        chartPEF.setDoubleTapToZoomEnabled(false);
-        chartPEF.setHighlightPerDragEnabled(false);
-        chartPEF.getViewPortHandler().setMaximumScaleX(1f);
-        chartPEF.getViewPortHandler().setMaximumScaleY(1f);
 
+        // 刷新图表
         chartPEF.invalidate();
     }
 
-
-    private void fetchTodayPEFZone(String childId) {
+    private void fetchTodayPEFZone(String childUid) {
 
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -657,7 +651,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
         Log.d(TAG, "Start of Today = " + startOfToday);
 
         db.collection("pefLogs")
-                .whereEqualTo("childId", childId)
+                .whereEqualTo("childId", childUid)
                 .whereGreaterThanOrEqualTo("timeStamp", startOfToday)
                 .orderBy("timeStamp", Query.Direction.ASCENDING)
                 .get()
@@ -680,14 +674,11 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 });
     }
 
-
-
     private void updateDashboardZoneUI(String zone) {
         if (textViewTodayPEFZone == null) return;
 
         int textColor;
         String zoneText;
-
 
         switch (zone) {
             case "Green":
@@ -771,7 +762,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
         return fullFmt.format(date);
     }
 
-
     private void findRescueMedicineAndListen(String childUid) {
 
         if (medicineListener != null) {
@@ -797,7 +787,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     listenToMedicineUpdates(medId);
                 });
     }
-
 
     /**
      * Listens for the most recent unprocessed alert for this parent.
@@ -890,6 +879,83 @@ public class ParentDashboardActivity extends AppCompatActivity {
         });
     }
 
+    // code
+    private void showGenerateCodeDialog() {
+        String[] options = {"For Child (Log in)", "For Healthcare Provider"};
 
+        new AlertDialog.Builder(this)
+                .setTitle("Generate Invitation Code")
+                .setItems(options, (dialog, which) -> {
+                    String forWho = (which == 0) ? "child" : "provider";
+                    generateAndSaveCode(forWho);
+                })
+                .show();
+    }
+
+    private void generateAndSaveCode(String forWho) {
+        // Generate a 6-digit random code
+        int randomCode = new Random().nextInt(900000) + 100000; // 100000 ~ 999999
+        String codeString = String.valueOf(randomCode);
+
+        // Calculate expiration time (7 days later)
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, 7);
+        Date expiresAt = calendar.getTime();
+
+        Map<String, Object> inviteData = new HashMap<>();
+        inviteData.put("code", codeString);
+        inviteData.put("parentId", parentUid);
+        inviteData.put("forWho", forWho);
+        inviteData.put("expiresAt", expiresAt);
+        inviteData.put("isUsed", false);
+
+        // Firestore "invites"
+        FirebaseFirestore.getInstance().collection("invites").document(codeString)
+                .set(inviteData)
+                .addOnSuccessListener(aVoid -> {
+                    showCodeSuccessDialog(codeString, forWho);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to generate code", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void showCodeSuccessDialog(String code, String forWho) {
+        new AlertDialog.Builder(this)
+                .setTitle("Code Generated!")
+                .setMessage("Your code for " + forWho + " is:\n\n" + code + "\n\nIt expires in 7 days.")
+                .setPositiveButton("Copy", (dialog, which) -> {
+                    android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                    android.content.ClipData clip = android.content.ClipData.newPlainText("Invite Code", code);
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(this, "Copied!", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("OK", null)
+                .show();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (medicineListListener != null) {
+            medicineListListener.remove();
+            medicineListListener = null;
+        }
+
+        if (singleAlertListener != null) {
+            singleAlertListener.remove();
+            singleAlertListener = null;
+        }
+
+        if (medicineListener != null) {
+            medicineListener.remove();
+            medicineListener = null;
+        }
+
+        if (rescueManager != null) {
+            rescueManager.stop();
+        }
+    }
 
 }

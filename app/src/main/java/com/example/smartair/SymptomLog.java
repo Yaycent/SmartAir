@@ -33,11 +33,11 @@ public class SymptomLog {
     }
 
     // Getters and Setters
-    public String getChildId() {
+    public String getChildUid() {
         return childUid;
     }
 
-    public void setChildId(String childUid) {
+    public void setChildUid(String childUid) {
         this.childUid = childUid;
     }
 

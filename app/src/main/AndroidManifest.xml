@@ -72,6 +72,9 @@
             android:name=".DailyCheckInActivity"
             android:exported="false" />
         <activity
+            android:name=".SymptomHistoryActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="false" />
 

@@ -2,6 +2,8 @@ package com.example.smartair;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.ArraySet;
 import android.view.KeyEvent;
 import android.widget.Button;
@@ -188,8 +190,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
 
                         if (ts == null) continue;
 
-                        LocalDate day = convertToLocalDate(ts);
-                        uniqueDates.add(day);
+                        uniqueDates.add(convertToLocalDate(ts));
                     }
 
                     // Query uniqueDays to determine streak
@@ -276,46 +277,25 @@ public class ChildDashboardActivity extends AppCompatActivity {
 
                     // Controller medication use should only be logged once per day
                     // Check if today controller medication use is already logged
-                    // If already used controller medication today, no new log added
-                    Set<LocalDate> uniqueDates = new TreeSet<>();
-                    // Get a list of all dates logged with the childUid and parentUid
-                    db.collection("controllerLogs")
-                            .whereEqualTo("childUid", childUid)
-                            .whereEqualTo("parentUid", parentUid)
-                            .get()
-                            .addOnSuccessListener(querySnapshot2 -> {
-                                        for (DocumentSnapshot document : querySnapshot2.getDocuments()) {
-                                            Long date = document.getLong("date");
-                                            if (date != null) {
-                                                uniqueDates.add(convertToLocalDate(date));
-                                            }
-                                            else {
-                                                Log.w(TAG, "No date found for document " + document.getId());
-                                            }
-                                        }
-                                        Log.d(TAG, "Dates in logControllerUse: " + uniqueDates);
+                    // If already logged controller medication today, no new log added
+                    isLoggedForToday(today, alreadyLogged ->{
+                        if (!alreadyLogged) {
+                            // Log controller medication use for today
+                            logControllerUse(today);
+                            // Deduct medicine
+                            for (DocumentSnapshot med : meds) {
+                                deductMedicine(med);
+                            }
+                            // refresh streak after log
+                            loadControllerStreak();
+                            // Check if the child have the badge and award them if the condition satisfied
+                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                hasPerfectControllerWeekBadge(childUid);
+                            }, 2000);
+                        }
+                        else Toast.makeText(this, "Today's controller medicine is already logged.", Toast.LENGTH_SHORT).show();
+                    });
 
-                                        LocalDate tDate = convertToLocalDate(today);
-
-                                        if (uniqueDates.contains(tDate)) {
-                                            Toast.makeText(this,"Today's controller medicine is already logged.", Toast.LENGTH_SHORT).show();
-                                            return;
-                                        }
-
-                                        logControllerUse(today);
-
-                                        for (DocumentSnapshot med : meds) {
-                                            deductMedicine(med);
-                                        }
-                                        loadControllerStreak(); // refresh streak after check
-                                        // Check if the child have a FPCW badge
-                                        // If no and condition to earn badge is satisfied, give the child the badge
-                                        // Otherwise, nothing happen
-                                        hasPerfectControllerWeekBadge(childUid);
-                            })
-                            .addOnFailureListener(e ->{
-                                Log.w(TAG, "Error loading controllerLogs data.");
-                            });
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to load medication info: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -363,28 +343,53 @@ public class ChildDashboardActivity extends AppCompatActivity {
                 });
     }
 
+    private void isLoggedForToday(long today, BadgeCallback badgeCallback) {
+        Set<LocalDate> uniqueDates = new TreeSet<>();
+        // Get a set of all dates logged with the childUid and parentUid
+        db.collection("controllerLogs")
+                .whereEqualTo("childUid", childUid)
+                .whereEqualTo("parentUid", parentUid)
+                .get()
+                .addOnSuccessListener(querySnapshot2 -> {
+                    for (DocumentSnapshot document : querySnapshot2.getDocuments()) {
+                        Long date = document.getLong("date");
+                        if (date != null) {
+                            uniqueDates.add(convertToLocalDate(date));
+                        } else {
+                            Log.w(TAG, "No date found for document " + document.getId());
+                        }
+                    }
+                    Log.d(TAG, "Dates in logControllerUse: " + uniqueDates);
+
+                    LocalDate tDate = convertToLocalDate(today);
+
+                    badgeCallback.onResult(uniqueDates.contains(tDate));
+                })
+                .addOnFailureListener(e-> {
+                    Log.w(TAG, "Error checking today's log " + e.getMessage());
+                    badgeCallback.onResult(false);
+                });
+    }
     private void hasPerfectControllerWeekBadge(String childUid) {
         db.collection("badges")
                 .document(childUid)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    boolean hasBadge = false;
-                    if (documentSnapshot != null && documentSnapshot.exists()){
-                        Double badge = documentSnapshot.getDouble("first_perfect_controller_week");
-                        if (badge != null) {
-                            Log.d(TAG, "Child already have first perfect controller week badge." );
-                            hasBadge = true;
-                        }
+                    boolean hasBadge = documentSnapshot != null && documentSnapshot.contains("first_perfect_controller_week");
+                    if (hasBadge) {
+                        Log.d(TAG, "Child already have first perfect controller week badge.");
+                        return;
                     }
-                    if (!hasBadge){
-                        isPerfectControllerWeek(childUid, earned -> {
-                            if (earned){
-                                savePerfectControllerWeekBadge(childUid);
-                                tvBadge.setText(getString(R.string.perfectControllerWeekBadge));
+                    isPerfectControllerWeek(childUid, earned -> {
+                        if (earned) {
+                            savePerfectControllerWeekBadge(childUid);
+                            tvBadge.setText(getString(R.string.perfectControllerWeekBadge));
+                            Toast.makeText(this,
+                                    " 🎉Congratulations! You earned the First Perfect Controller Week Badge.",
+                                    Toast.LENGTH_SHORT).show();
                             }
-                            else Log.d(TAG, "First perfect controller week badge cannot be earned yet.");
-                        });
-                    }
+                        else Log.d(TAG, "First perfect controller week badge cannot be earned yet.");
+                    });
                 })
                 .addOnFailureListener(e -> {
                     Log.w(TAG, "Error loading badges data.");
@@ -417,7 +422,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
                             Log.w(TAG, "No date found for document " + document.getId());
                         }
                     }
-                    Log.d(TAG, "Date: " + uniqueDates);
+                    Log.d(TAG, "Dates: " + uniqueDates);
 
                     // Query uniqueDates to count number of consecutive days
                     int dayCounter = 1;
@@ -426,14 +431,14 @@ public class ChildDashboardActivity extends AppCompatActivity {
                         if (prevDate != null){
                             if (date.equals(prevDate.plusDays(1))){
                                 dayCounter++;
-                                if (dayCounter >= 7) {
-                                    badgeCallback.onResult(true);
-                                    return;
-                                }
                             }
                             else dayCounter = 1;
                         }
                         prevDate = date;
+                    }
+                    if (dayCounter == 7) {
+                        badgeCallback.onResult(true);
+                        return;
                     }
                     badgeCallback.onResult(false);
                 })

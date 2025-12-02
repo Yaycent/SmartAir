@@ -1,6 +1,8 @@
 package com.example.smartair;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -13,6 +15,7 @@ import android.widget.Toast;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -73,7 +76,6 @@ public class ChildDashboardActivity extends AppCompatActivity {
         parentUid = intent.getStringExtra(PARENT_UID);
         childName = intent.getStringExtra(CHILD_NAME);
 
-
         if (childUid != null) {
             Log.d(TAG, "Logged in Child UID: " + childUid);
         }
@@ -90,6 +92,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
                 parentUid = currentUser.getUid();
             }
         }
+        Log.d(TAG, "Logged in Child UID: " + childUid);
         Log.d(TAG, "Parent UID: " + parentUid);
 
         // All Buttons
@@ -160,9 +163,6 @@ public class ChildDashboardActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // --- Back ---
-        ImageButton imageButtonBackChildDashboard = findViewById(R.id.imageButtonBackChildDashboard);
-        imageButtonBackChildDashboard.setOnClickListener(v -> finish());
 
         // --- SOS ---
         Button buttonSOS = findViewById(R.id.buttonSOS);
@@ -180,6 +180,31 @@ public class ChildDashboardActivity extends AppCompatActivity {
             //new
             intent.putExtra(CHILD_NAME, childName);
             startActivity(intent);
+        });
+
+        // --- Back ---
+        ImageButton imageButtonBackChildDashboard = findViewById(R.id.imageButtonBackChildDashboard);
+        imageButtonBackChildDashboard.setOnClickListener(v -> {
+            // 创建一个简单的弹窗确认注销
+            new AlertDialog.Builder(this)
+                    .setTitle("Log Out")
+                    .setMessage("Do you want to exit and sign in again?")
+                    .setPositiveButton("Log Out", (dialog, which) -> {
+                        // 1. 清除本地缓存
+                        SharedPreferences prefs = getSharedPreferences("SmartAirChildPrefs", Context.MODE_PRIVATE);
+                        prefs.edit().clear().apply();
+
+                        // 2. Firebase 注销 (如果是匿名登录)
+                        FirebaseAuth.getInstance().signOut();
+
+                        // 3. 跳转回登录页
+                        Intent intent = new Intent(ChildDashboardActivity.this, ChildLoginActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
         });
     }
 
@@ -247,7 +272,6 @@ public class ChildDashboardActivity extends AppCompatActivity {
             Toast.makeText(this, "Missing CHILD_UID or PARENT_UID. ", Toast.LENGTH_SHORT).show();
             return;
         }
-
 
         db.collection("medicine")
                 .whereEqualTo("parentUid", parentUid)

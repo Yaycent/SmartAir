@@ -12,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -65,8 +66,8 @@ public class ParentDashboardActivity extends AppCompatActivity {
     // UI components
     private Spinner spinnerChild;
     private Spinner spinnerRange;
-    private Button buttonAddChild;
-    private TextView tvGoToChildDashboard;
+    private TextView buttonAddChild;
+    private ImageView tvGoToChildDashboard;
     private TextView tvLogout;
 
     private LineChart chartPEF;
@@ -74,11 +75,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
     private TextView textViewTodayPEFZone;
     private TextView tvRescueSummary;
     private ListenerRegistration medicineListener;
-
-
-
-
-
 
     // Firebase
     private FirebaseFirestore db;
@@ -172,7 +168,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
         tvLogout = findViewById(R.id.tvLogout);
         recyclerView = findViewById(R.id.recyclerMedicineInventory);
         Button buttonAddMedicine = findViewById(R.id.buttonAddMedicine);
-        ImageButton btnSettings = findViewById(R.id.btnSettings);
+        TextView btnSettings = findViewById(R.id.btnSettings);
         spinnerRange = findViewById(R.id.spinnerTimeRange);
         chartPEF = findViewById(R.id.chartPEF);
         textViewTodayPEFZone = findViewById(R.id.textViewTodayPEFZone);
@@ -414,9 +410,8 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
             if (!low && !expiringSoon) continue;
 
-            // 如果你的 medicine 有 childUid，可以用这个；否则可以传 null 或默认孩子名
             String childUidForMed = item.getChildUid();
-            String childNameForMed = item.getChildName();   // 如果你在 medicine 里有 childName 字段，也可以加 getter
+            String childNameForMed = item.getChildName();
 
             ParentAlertHelper.alertMedicineLowOrExpired(
                     parentUid,
@@ -889,7 +884,5 @@ public class ParentDashboardActivity extends AppCompatActivity {
             }
         });
     }
-
-
 
 }

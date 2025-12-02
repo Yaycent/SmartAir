@@ -187,12 +187,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
                 if (position > 0) {
                     if (position < childIds.size()) {
-                        String childId = childIds.get(position);
+                        String childUid = childIds.get(position);
                         int days = (spinnerRange.getSelectedItemPosition() == 0) ? 7 : 30;
 
-                        fetchTodayPEFZone(childId);
+                        fetchTodayPEFZone(childUid);
 
-                        loadPEFData(childId, days);
+                        loadPEFData(childUid, days);
                     }
                 } else {
                     chartPEF.clear();
@@ -394,13 +394,13 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 });
     }
 
-    private void loadPEFData(String childId, int days) {
+    private void loadPEFData(String childUid, int days) {
 
         long now = System.currentTimeMillis();
         long from = now - days * 24L * 60 * 60 * 1000;
 
         db.collection("pefLogs")
-                .whereEqualTo("childId", childId)
+                .whereEqualTo("childUid", childUid)
                 .whereGreaterThan("timeStamp", from)
                 .orderBy("timeStamp")
                 .get()
@@ -447,7 +447,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     }
 
 
-                    db.collection("children").document(childId)
+                    db.collection("children").document(childUid)
                             .get()
                             .addOnSuccessListener(doc -> {
                                 Double PB = doc.getDouble("childPB");
@@ -609,7 +609,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
     }
 
 
-    private void fetchTodayPEFZone(String childId) {
+    private void fetchTodayPEFZone(String childUid) {
 
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -621,7 +621,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
         Log.d(TAG, "Start of Today = " + startOfToday);
 
         db.collection("pefLogs")
-                .whereEqualTo("childId", childId)
+                .whereEqualTo("childUid", childUid)
                 .whereGreaterThanOrEqualTo("timeStamp", startOfToday)
                 .orderBy("timeStamp", Query.Direction.ASCENDING)
                 .get()

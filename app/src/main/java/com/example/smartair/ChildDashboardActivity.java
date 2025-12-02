@@ -2,6 +2,10 @@ package com.example.smartair;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.ArraySet;
+import android.view.KeyEvent;
 import android.widget.Button;
 import android.util.Log;
 import android.widget.ImageButton;
@@ -22,10 +26,17 @@ import com.google.firebase.firestore.Query;
 
 import static com.example.smartair.Constants.*;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
-public class ChildDashboardActivity extends AppCompatActivity {  
+public class ChildDashboardActivity extends AppCompatActivity {
     private static final String TAG = "ChildDashboardActivity";
 
     // Firestore
@@ -38,6 +49,9 @@ public class ChildDashboardActivity extends AppCompatActivity {
 
     // UI
     private TextView tvStreak;
+    private TextView tvBadge;
+
+    // ***** Note: FPCW = First Perfect Controller Week *****
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +76,8 @@ public class ChildDashboardActivity extends AppCompatActivity {
 
         if (childUid != null) {
             Log.d(TAG, "Logged in Child UID: " + childUid);
-        } else {
+        }
+        else {
             Log.e(TAG, "Error: CHILD_UID not received!");
             Toast.makeText(this, "Error: Child data missing", Toast.LENGTH_SHORT).show();
         }
@@ -91,12 +106,24 @@ public class ChildDashboardActivity extends AppCompatActivity {
 
         if (tvStreak == null) {
             Log.e("STREAK", "tvDaysCount NOT FOUND!");
-        } else {
+        }
+        else {
             Log.d("STREAK", "tvDaysCount FOUND.");
         }
 
         // Load streak Data
         loadControllerStreak();
+
+        // Check badge collection
+        TextView tvCheckBadges = findViewById(R.id.tvCheckBadges);
+        tvCheckBadges.setOnClickListener(v -> {
+            Intent intentBadge = new Intent(ChildDashboardActivity.this, BadgeLibrary.class);
+            startActivity(intentBadge);
+        });
+
+        // Initialize tvBadge
+        tvBadge = findViewById(R.id.tvBadge);
+        tvBadge.setText(getString(R.string.yourBadge));
 
     }
 
@@ -121,7 +148,7 @@ public class ChildDashboardActivity extends AppCompatActivity {
         buttonController.setOnClickListener(view -> handleControllerCheck());
 
         // --- Check-in ---
-        Button buttonCheckin = findViewById(R.id.buttonCheckin);
+        TextView buttonCheckin = findViewById(R.id.buttonCheckin);
         buttonCheckin.setOnClickListener(v -> {
             if (childUid == null) {
                 Toast.makeText(this, "Error: Child UID is missing!", Toast.LENGTH_SHORT).show();
@@ -166,44 +193,51 @@ public class ChildDashboardActivity extends AppCompatActivity {
         db.collection("controllerLogs")
                 .whereEqualTo("childUid", childUid)
                 .whereEqualTo("parentUid", parentUid)
-                .orderBy("date", Query.Direction.DESCENDING)
                 .get()
-                .addOnSuccessListener(snap -> {
-
-
-                    if (snap.isEmpty()) {
+                .addOnSuccessListener(querySnapshot -> {
+                    if (querySnapshot.isEmpty()) {
                         tvStreak.setText(getString(R.string.streak_start));
                         return;
                     }
 
-                    ArrayList<Long> uniqueDays = new ArrayList<>();
-                    for (DocumentSnapshot d : snap.getDocuments()) {
+                    // TreeSet automatically sorts the dates in ascending order, with oldest date on top
+                    Set<LocalDate> uniqueDates = new TreeSet<>();
+
+                    for (DocumentSnapshot d : querySnapshot.getDocuments()) {
                         Long ts = d.getLong("date");
                         Log.d("STREAK", "date raw = " + ts);
 
                         if (ts == null) continue;
 
-                        long dayIndex = ts / (24L * 60 * 60 * 1000);
-
-                        if (!uniqueDays.contains(dayIndex)) {
-                            uniqueDays.add(dayIndex);
-                        }
+                        uniqueDates.add(convertToLocalDate(ts));
                     }
 
-                    int streak = uniqueDays.size();
+                    // Query uniqueDays to determine streak
+                    int streak = 1;
+                    LocalDate prevDate = null;
+                    for (LocalDate date: uniqueDates){
+                        if (prevDate != null){
+                            if (date.equals(prevDate.plusDays(1))){
+                                streak++;
+                            }
+                            else streak = 1;
+                        }
+                        prevDate = date;
+                    }
 
-                    if (streak == 0) {
-                        tvStreak.setText(getString(R.string.streak_start));
-                    } else if (streak == 1) {
+                    if (streak == 1) {
                         tvStreak.setText(getString(R.string.streak_day1));
-                    } else {
+                    } else if (streak > 1) {
                         tvStreak.setText(getString(R.string.streak_on_a_roll, streak));
+                    } else {
+                        tvStreak.setText(getString(R.string.streak_start));
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e("STREAK", "Firestore ERROR: " + e.getMessage());
                     tvStreak.setText(getString(R.string.streak_start));
                 });
+
     }
 
     // Rescue
@@ -259,13 +293,29 @@ public class ChildDashboardActivity extends AppCompatActivity {
                     }
 
                     List<DocumentSnapshot> meds = querySnapshot.getDocuments();
+                    long today = System.currentTimeMillis();
 
-                    for (DocumentSnapshot med : meds) {
-                        deductMedicine(med);
-                    }
+                    // Controller medication use should only be logged once per day
+                    // Check if today controller medication use is already logged
+                    // If already logged controller medication today, no new log added
+                    isLoggedForToday(today, alreadyLogged ->{
+                        if (!alreadyLogged) {
+                            // Log controller medication use for today
+                            logControllerUse(today);
+                            // Deduct medicine
+                            for (DocumentSnapshot med : meds) {
+                                deductMedicine(med);
+                            }
+                            // refresh streak after log
+                            loadControllerStreak();
+                            // Check if the child have the badge and award them if the condition satisfied
+                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                hasPerfectControllerWeekBadge(childUid);
+                            }, 2000);
+                        }
+                        else Toast.makeText(this, "Today's controller medicine is already logged.", Toast.LENGTH_SHORT).show();
+                    });
 
-                    logControllerUse();
-                    loadControllerStreak(); // refresh streak after check
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to load medication info: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -297,19 +347,143 @@ public class ChildDashboardActivity extends AppCompatActivity {
         db.collection("medicine").document(docId)
                 .update("remainingDose", newDose)
                 .addOnSuccessListener(aVoid -> {
-                    String msg = "Well Done!";
-                    Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+                    Toast.makeText(this,"Well Done!" , Toast.LENGTH_LONG).show();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Network Error: Update Failed", Toast.LENGTH_SHORT).show();
                 });
     }
 
-    private void logControllerUse() {
-        long today = System.currentTimeMillis();
-
+    private void logControllerUse(long today) {
         db.collection("controllerLogs")
                 .add(new ControllerLog(parentUid, childUid, today))
-                .addOnSuccessListener(d -> Log.d(TAG, "Logged controller use"));
+                .addOnSuccessListener(d -> Log.d(TAG, "Logged controller use"))
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error saving controllerLogs data.");
+                });
     }
+
+    private void isLoggedForToday(long today, BadgeCallback badgeCallback) {
+        Set<LocalDate> uniqueDates = new TreeSet<>();
+        // Get a set of all dates logged with the childUid and parentUid
+        db.collection("controllerLogs")
+                .whereEqualTo("childUid", childUid)
+                .whereEqualTo("parentUid", parentUid)
+                .get()
+                .addOnSuccessListener(querySnapshot2 -> {
+                    for (DocumentSnapshot document : querySnapshot2.getDocuments()) {
+                        Long date = document.getLong("date");
+                        if (date != null) {
+                            uniqueDates.add(convertToLocalDate(date));
+                        } else {
+                            Log.w(TAG, "No date found for document " + document.getId());
+                        }
+                    }
+                    Log.d(TAG, "Dates in logControllerUse: " + uniqueDates);
+
+                    LocalDate tDate = convertToLocalDate(today);
+
+                    badgeCallback.onResult(uniqueDates.contains(tDate));
+                })
+                .addOnFailureListener(e-> {
+                    Log.w(TAG, "Error checking today's log " + e.getMessage());
+                    badgeCallback.onResult(false);
+                });
+    }
+    private void hasPerfectControllerWeekBadge(String childUid) {
+        db.collection("badges")
+                .document(childUid)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    boolean hasBadge = documentSnapshot != null && documentSnapshot.contains("first_perfect_controller_week");
+                    if (hasBadge) {
+                        Log.d(TAG, "Child already have first perfect controller week badge.");
+                        return;
+                    }
+                    isPerfectControllerWeek(childUid, earned -> {
+                        if (earned) {
+                            savePerfectControllerWeekBadge(childUid);
+                            tvBadge.setText(getString(R.string.perfectControllerWeekBadge));
+                            Toast.makeText(this,
+                                    " 🎉Congratulations! You earned the First Perfect Controller Week Badge.",
+                                    Toast.LENGTH_SHORT).show();
+                            }
+                        else Log.d(TAG, "First perfect controller week badge cannot be earned yet.");
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error loading badges data.");
+                });
+
+    }
+
+    // Convert date in the database to format YYYY/MM/DD
+    private LocalDate convertToLocalDate(Long timeMillis) {
+        return Instant.ofEpochMilli(timeMillis)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
+
+    // Check if a childUid has 7 consecutive check-in days
+    private void isPerfectControllerWeek(String childUid,  BadgeCallback badgeCallback){
+        // Query the controllerLogs collection to extract dates from all documents with given childUid and parentUid
+        Set<LocalDate> uniqueDates = new TreeSet<>();
+        db.collection("controllerLogs")
+                .whereEqualTo("childUid", childUid)
+                .whereEqualTo("parentUid", parentUid)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    for (DocumentSnapshot document: querySnapshot.getDocuments()) {
+                        Long date = document.getLong("date");
+                        if (date != null) {
+                            uniqueDates.add(convertToLocalDate(date));
+                        }
+                        else {
+                            Log.w(TAG, "No date found for document " + document.getId());
+                        }
+                    }
+                    Log.d(TAG, "Dates: " + uniqueDates);
+
+                    // Query uniqueDates to count number of consecutive days
+                    int dayCounter = 1;
+                    LocalDate prevDate = null;
+                    for (LocalDate date: uniqueDates){
+                        if (prevDate != null){
+                            if (date.equals(prevDate.plusDays(1))){
+                                dayCounter++;
+                            }
+                            else dayCounter = 1;
+                        }
+                        prevDate = date;
+                    }
+                    if (dayCounter == 7) {
+                        badgeCallback.onResult(true);
+                        return;
+                    }
+                    badgeCallback.onResult(false);
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error loading controller data.");
+                    badgeCallback.onResult(false);
+                });
+    }
+
+    // Save the badge to the badges collection
+    private void savePerfectControllerWeekBadge(String childUid) {
+        // Create a document
+        Map<String, Double> logData = new HashMap<>();
+        logData.put("first_perfect_controller_week", 1.0);
+
+        // Save data to the badge collection
+        db.collection("badges")
+                .document(childUid)
+                .set(logData)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d(TAG, "Badge saved successfully.");
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error saving badge.");
+                });
+    }
+
 }

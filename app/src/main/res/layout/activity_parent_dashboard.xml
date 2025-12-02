@@ -76,19 +76,21 @@
         android:id="@+id/cardMedicationInventory"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
         android:layout_marginTop="28dp"
+        android:layout_marginEnd="5dp"
+        app:cardBackgroundColor="@android:color/transparent"
         app:cardCornerRadius="14dp"
         app:cardElevation="0dp"
-        app:cardBackgroundColor="@android:color/transparent"
-        app:layout_constraintTop_toBottomOf="@id/spinnerChildren"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/spinnerChildren">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:padding="18dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/form_border">
+            android:background="@drawable/form_border"
+            android:padding="18dp">
 
             <TextView
                 android:id="@+id/textInventoryTitle"
@@ -96,21 +98,21 @@
                 android:layout_height="wrap_content"
                 android:text="Medicine Inventory"
                 android:textColor="#333333"
-                android:textStyle="bold"
                 android:textSize="18sp"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <Button
                 android:id="@+id/buttonAddMedicine"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Add Medicine"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold"
                 android:backgroundTint="#F5A623"
                 android:paddingHorizontal="20dp"
                 android:paddingVertical="10dp"
+                android:text="Add Medicine"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -120,26 +122,26 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                app:layout_constraintTop_toBottomOf="@id/textInventoryTitle"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintTop_toBottomOf="@id/textInventoryTitle" />
 
             <!-- NEW: Weekly Uses inside card bottom -->
             <TextView
                 android:id="@+id/tvRescueSummary"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:padding="10dp"
                 android:layout_marginTop="16dp"
-                android:text="Rescue | Weekly uses: - | Last use: -"
-                android:textSize="15sp"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold"
                 android:background="#F5A623"
-                app:layout_constraintTop_toBottomOf="@id/recyclerMedicineInventory"
-                app:layout_constraintStart_toStartOf="parent"
+                android:padding="10dp"
+                android:text="Rescue | Weekly uses: - | Last use: -"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/recyclerMedicineInventory" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>

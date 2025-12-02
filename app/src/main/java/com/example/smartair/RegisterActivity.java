@@ -141,8 +141,10 @@ public class RegisterActivity extends AppCompatActivity {
                     finish();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error saving user role", e);
-                    Toast.makeText(RegisterActivity.this, "Failed to save user data.", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error saving user role" + e.getMessage());
+                    Toast.makeText(RegisterActivity.this,
+                            "Failed to save user data: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
                 });
     }
 }

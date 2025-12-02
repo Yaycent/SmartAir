@@ -1,5 +1,8 @@
 package com.example.smartair;
 
+import static com.example.smartair.Constants.KEY_ROLE;
+import static com.example.smartair.Constants.ROLE_CHILD;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -146,6 +149,23 @@ public class ChildLoginActivity extends AppCompatActivity {
     }
 
     private void goToDashboard(String uid, String name, String pid) {
+
+        // Child onboarding
+        SharedPreferences prefs = getSharedPreferences("onboarding", MODE_PRIVATE);
+        boolean onboardingDone = prefs.getBoolean("done_Child_" +uid, false);
+
+        if (!onboardingDone) {
+            Intent intent = new Intent(this, OnboardingActivity.class);
+            intent.putExtra(KEY_ROLE, ROLE_CHILD);
+            intent.putExtra("USER_UID", uid);
+            intent.putExtra("CHILD_NAME", name);
+            intent.putExtra("PARENT_UID", pid);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
+        // To dashboard
         Intent intent = new Intent(this, ChildDashboardActivity.class);
         intent.putExtra("CHILD_UID", uid);
         intent.putExtra("CHILD_NAME", name);

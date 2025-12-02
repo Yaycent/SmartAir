@@ -166,15 +166,13 @@ public class MainActivity extends AppCompatActivity {
 
                     // Check onboarding status before dashboard.
                     boolean onboardingDone = getSharedPreferences("onboarding", MODE_PRIVATE)
-                            .getBoolean("done_" + uid, false);
+                            .getBoolean("done_" + actualRole+ "_" + uid, false);
 
                     if (!onboardingDone) {
                         // Go to onboarding
                         Intent intent = new Intent(MainActivity.this, OnboardingActivity.class);
                         intent.putExtra(KEY_ROLE, actualRole);
-                        if (ROLE_PARENT.equals(actualRole)) {
-                            intent.putExtra(PARENT_UID, uid);
-                        }
+                        intent.putExtra("USER_UID", uid);
                         startActivity(intent);
                         finish();
                         return;

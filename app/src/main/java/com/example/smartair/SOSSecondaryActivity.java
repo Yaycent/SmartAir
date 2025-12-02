@@ -33,6 +33,8 @@ public class SOSSecondaryActivity extends AppCompatActivity {
     private EditText editRescueAttempts, editCurrentPEF;
     private FirebaseFirestore db;
     private String childUid, parentUid;
+    private String childName;
+
 
     private double mChildPB = 1.0; // default
 
@@ -55,6 +57,9 @@ public class SOSSecondaryActivity extends AppCompatActivity {
 
         childUid = getIntent().getStringExtra(CHILD_UID);
         parentUid = getIntent().getStringExtra(PARENT_UID);
+        //new
+        childName = getIntent().getStringExtra(CHILD_NAME);
+
 
         if (childUid == null || parentUid == null) {
             Toast.makeText(this, "Missing child/parent data.", Toast.LENGTH_SHORT).show();
@@ -121,6 +126,17 @@ public class SOSSecondaryActivity extends AppCompatActivity {
 
         // save log
         saveLogToFirestore(attempts, currentPEF, zone);
+
+        if ("Red".equals(zone) || "Yellow".equals(zone)) {
+            // NEW: Parent Alert when recheck PEF is Yellow or Red
+            ParentAlertHelper.createParentAlertInFirestore(
+                    parentUid,
+                    childUid,
+                    "child",
+                    "SOS recheck PEF is in the " + zone + " zone."
+            );
+        }
+
 
         if ("Green".equals(zone) && !isFirstCheck) {
             showGreenZoneDialog();
@@ -257,6 +273,15 @@ public class SOSSecondaryActivity extends AppCompatActivity {
     }
 
     private void triggerEscalation() {
+
+        // NEW: Alert parent when child feels worse during timer
+        ParentAlertHelper.createParentAlertInFirestore(
+                parentUid,
+                childUid,
+                childName,
+                childName +" pressed 'I feel WORSE!' during SOS triage timer."
+        );
+
         new AlertDialog.Builder(this)
                 .setTitle("⚠️ Emergency")
                 .setMessage("Your condition is worsening. Please call 911 immediately!")
@@ -288,6 +313,7 @@ public class SOSSecondaryActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra(CHILD_UID, childUid);
         intent.putExtra(PARENT_UID, parentUid);
+        intent.putExtra(CHILD_NAME, childName);
         startActivity(intent);
         finish();
     }

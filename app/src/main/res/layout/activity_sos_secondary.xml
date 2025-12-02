@@ -69,5 +69,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <TextView
+        android:id="@+id/tvSafetyNote"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Safety note: This is guidance, not a diagnosis. If in doubt, call emergency."
+        android:textColor="#FFFFFF"
+        android:background="#F5A623"
+        android:gravity="center"
+        android:textStyle="bold"
+        android:padding="16dp"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

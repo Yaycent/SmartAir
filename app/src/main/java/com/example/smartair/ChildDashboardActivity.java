@@ -140,9 +140,18 @@ public class ChildDashboardActivity extends AppCompatActivity {
         // --- SOS ---
         Button buttonSOS = findViewById(R.id.buttonSOS);
         buttonSOS.setOnClickListener(v -> {
+            //NEW: Send Parent Alert immediately when child presses SOS
+            ParentAlertHelper.createParentAlertInFirestore(
+                    parentUid,
+                    childUid,
+                    childName,
+                    childName + " pressed the SOS button. Immediate attention recommended."
+            );
             Intent intent = new Intent(ChildDashboardActivity.this, SOSTriageActivity.class);
             intent.putExtra(CHILD_UID, childUid);
             intent.putExtra(PARENT_UID, parentUid);
+            //new
+            intent.putExtra(CHILD_NAME, childName);
             startActivity(intent);
         });
     }

@@ -212,6 +212,16 @@ public class RecordPEFFeature extends AppCompatActivity {
                     if (zone.equals("Red")) {
                         ParentAlertHelper.alertPEFRed(parentUid, childUid, childName, PEFValue);
                     }
+                    //NEW
+                    else if (zone.equals("Yellow")) {
+                        ParentAlertHelper.createParentAlertInFirestore(
+                                parentUid,
+                                childUid,
+                                childName,
+                                childName + "'s PEF is in the YELLOW zone (" + PEFValue + ")."
+                        );
+                    }
+
                     Log.d(TAG, "PEF Log saved: " + documentReference.getId());
                     Toast.makeText(RecordPEFFeature.this, "Saved successfully!", Toast.LENGTH_SHORT).show();
 

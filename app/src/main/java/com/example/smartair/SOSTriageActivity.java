@@ -24,6 +24,8 @@ import java.util.Map;
 public class SOSTriageActivity extends AppCompatActivity {
 
     private String childUid, parentUid;
+    private String childName;
+
     private RadioGroup rgQ1, rgQ2, rgQ3;
     private FirebaseFirestore db;
 
@@ -42,6 +44,8 @@ public class SOSTriageActivity extends AppCompatActivity {
 
         childUid = getIntent().getStringExtra("CHILD_UID");
         parentUid = getIntent().getStringExtra("PARENT_UID");
+        childName = getIntent().getStringExtra("CHILD_NAME");
+
 
         if (childUid == null || parentUid == null) {
             Toast.makeText(this, "Missing child/parent data.", Toast.LENGTH_SHORT).show();
@@ -80,7 +84,15 @@ public class SOSTriageActivity extends AppCompatActivity {
 
         savePage1Log(hasEmergency);
 
+
         if (hasEmergency) {
+            //NEW: Parent Alert for SOS YES
+            ParentAlertHelper.createParentAlertInFirestore(
+                    parentUid,
+                    childUid,
+                    childName,
+                    childName+ "SOS emergency triggered: At least one triage question was answered YES."
+            );
             // Show emergency toast & trigger phone dialer
             Toast.makeText(this, getString(R.string.calling_911), Toast.LENGTH_LONG).show();
             call911();
@@ -92,6 +104,7 @@ public class SOSTriageActivity extends AppCompatActivity {
         Intent intent = new Intent(SOSTriageActivity.this, SOSSecondaryActivity.class);
         intent.putExtra("CHILD_UID", childUid);
         intent.putExtra("PARENT_UID", parentUid);
+        intent.putExtra("CHILD_NAME", childName);
         startActivity(intent);
 
     }

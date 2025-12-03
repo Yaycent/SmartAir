@@ -75,11 +75,6 @@
 
 We have implemented Unit Tests for the **Login Module** following the MVP architecture requirements.
 
-* **Location:** `app/src/test/java/com/example/smartair/`
-* **Frameworks:** JUnit 4, Mockito.
-* **Coverage:** Tests validate success/failure scenarios in the `LoginPresenter`.
-* **How to run:** Right-click the `test` folder in Android Project View and select **"Run Tests in 'test'"**.
-
 ---
 
 ---

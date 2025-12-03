@@ -77,7 +77,69 @@ We have implemented Unit Tests for the **Login Module** following the MVP archit
 
 ---
 
+# Code Documentation & Architecture
+
+This section provides a high-level overview of the key classes and modules implemented in the SMART AIR application.
+
+## Architecture: MVP (Model-View-Presenter)
+We refactored the **Login Module** to follow the MVP pattern to improve testability and separation of concerns.
+
+### Login Module
+* **`LoginActivity.java` (View)**
+    * **Description:** Handles the user authentication process for Parents and Providers.
+    * **Responsibilities:** Captures user input, updates UI states (loading/error), and handles navigation routing based on the Presenter's decision.
+* **`LoginPresenter.java` (Presenter)**
+    * **Description:** The "brain" of the login process. Decouples business logic from the UI.
+    * **Responsibilities:** Validates input, communicates with Firebase Auth/Firestore models, validates User Roles (Security), and commands the View to update.
+* **`LoginContract.java`**
+    * **Description:** Interface definition that enforces the contract between View and Presenter.
+
 ---
+
+## Core Activities (Screens)
+
+### Dashboards
+* **`ParentDashboardActivity.java`**
+    * **Description:** The central control hub for Parents (Requirement R6).
+    * **Key Features:**
+        * **Visualizations:** Displays PEF trends using MPAndroidChart (7/30 days).
+        * **Inventory:** Tracks medication stock and displays "Low Stock" alerts.
+        * **Alerts:** Shows real-time "Red Zone" or "Rapid Rescue" warnings via `ParentAlertHelper`.
+* **`ChildDashboardActivity.java`**
+    * **Description:** A kid-friendly interface with large buttons for logging health data (Requirement R3, R4).
+    * **Key Features:** One-tap logging for Rescue/Controller meds, PEF recording entry point, and Gamification (Streaks/Badges) display.
+* **`ProviderDashboardActivity.java`**
+    * **Description:** The dashboard for Healthcare Providers (Requirement R2, R6).
+    * **Key Features:** Supports patient linking via invite codes and displays shared patient data based on granular permission settings.
+
+### Data Logging & History
+* **`RecordPEFFeature.java`**
+    * **Description:** Handles the recording and analysis of Peak Flow values (Requirement R4).
+    * **Logic:** Automatically calculates the "Asthma Zone" (Green/Yellow/Red) based on the child's Personal Best (PB) and triggers alerts if in the Red Zone.
+* **`SymptomHistoryActivity.java`**
+    * **Description:** A history browser for symptoms and logs (Requirement R5).
+    * **Features:** Supports filtering by date/symptom type and exporting data to PDF/CSV.
+* **`EmergencyMedicationActivity.java`**
+    * **Description:** Logs rescue medication usage with context (Pre/Post feeling). Checks for "Worse after dose" conditions.
+
+### Safety & Triage (SOS)
+* **`SOSTriageActivity.java`**
+    * **Description:** Phase 1 of the "One-Tap Triage" system. Assesses critical "Red Flag" symptoms (e.g., blue lips) and directs to 911 if necessary.
+* **`SOSSecondaryActivity.java`**
+    * **Description:** Phase 2 of Triage. Handles Action Plan guidance and the 10-minute safety countdown timer.
+
+---
+
+### Managers & Helpers
+* **`ParentAlertHelper.java`**
+    * **Description:** Centralized logic for generating safety alerts (Requirement R4 & R6).
+    * **Logic:** Monitors data for specific conditions: Red Zone PEF, Rapid Rescue Repeats (≥3 in 3 hours), and Inventory Low/Expired.
+* **`RescueUsageManager.java`**
+    * **Description:** Background manager for Rescue Medication.
+    * **Logic:** Listens for new logs to automatically deduct inventory count and triggers the "Rapid Rescue" check.
+* **`MyFirebaseMessagingService.java`**
+    * **Description:** Handles incoming FCM (Firebase Cloud Messaging) notifications to ensure parents receive alerts even when the app is in the background.
+ 
 
 ## License & Acknowledgements
 

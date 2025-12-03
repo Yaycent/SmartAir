@@ -350,7 +350,6 @@ public class ProviderDashboardActivity extends AppCompatActivity {
 
     private void updateSectionVisibility(String childUid, boolean shareMeds, boolean sharePEF, boolean shareSymptoms){
 
-
         // 1. Medicine
         if (shareMeds) {
             cardMedicationInventory.setVisibility(View.VISIBLE);
@@ -618,7 +617,9 @@ public class ProviderDashboardActivity extends AppCompatActivity {
         chartPEF.invalidate();
     }
 
+
     private void fetchTodayPEFZone(String childUid) {
+
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
@@ -629,18 +630,37 @@ public class ProviderDashboardActivity extends AppCompatActivity {
         db.collection("pefLogs")
                 .whereEqualTo("childId", childUid)
                 .whereGreaterThanOrEqualTo("timeStamp", startOfToday)
-                .orderBy("timeStamp", Query.Direction.DESCENDING) // Get latest
-                .limit(1)
+                .orderBy("timeStamp", Query.Direction.ASCENDING)
                 .get()
                 .addOnSuccessListener(snap -> {
+
                     if (!snap.isEmpty()) {
-                        String zone = snap.getDocuments().get(0).getString("zone");
+
+                        String zone = snap.getDocuments()
+                                .get(snap.size() - 1)
+                                .getString("zone");
+
                         updateDashboardZoneUI(zone);
                     } else {
                         updateDashboardZoneUI("No Record");
                     }
+                })
+                .addOnFailureListener(e -> {
+                    updateDashboardZoneUI("Error");
                 });
     }
+
+
+
+    private String calculateZone(float value, Double PB) {
+        if (PB == null || PB <= 0) return "Unknown";
+
+        if (value >= PB * 0.8) return "Green";
+        if (value >= PB * 0.5) return "Yellow";
+        return "Red";
+    }
+
+
 
     private void updateDashboardZoneUI(String zone) {
         int color;
@@ -731,9 +751,11 @@ public class ProviderDashboardActivity extends AppCompatActivity {
 
         alertListener = db.collection("parentAlerts")
                 .whereEqualTo("parentUid", parentUid)
+                .whereEqualTo("sharedToProvider", true)
                 .whereGreaterThan("timestamp", cutoff)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .limit(3)
+
                 .addSnapshotListener((snap, e) -> {
 
                     if (e != null || snap == null) return;

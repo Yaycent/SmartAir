@@ -21,26 +21,39 @@ public class ParentAlertHelper {
                                                     String childName,
                                                     String message) {
 
-        if (childName == null) childName = "Your child";
+        final String finalChildName = (childName == null) ? "Your child" : childName;
 
-        Map<String, Object> alert = new HashMap<>();
-        alert.put("parentUid", parentUid);
-        alert.put("childUid", childUid);
-        alert.put("childName", childName);
-        alert.put("message", message);
-        alert.put("timestamp", Timestamp.now());
-        alert.put("processed", false);   // Parent app will mark this true after showing notification
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        FirebaseFirestore.getInstance()
-                .collection("parentAlerts")
-                .add(alert)
-                .addOnSuccessListener(doc ->
-                        Log.d(TAG, "Alert saved to Firestore: " + doc.getId())
-                )
-                .addOnFailureListener(e ->
-                        Log.e(TAG, "Failed saving alert to Firestore", e)
-                );
+        // Step 1: read parent's sharing settings
+        db.collection("users")
+                .document(parentUid)
+                .collection("settings")
+                .document("preferences")
+                .get()
+                .addOnSuccessListener(prefDoc -> {
+
+                    boolean shareEmergency =
+                            prefDoc.exists() &&
+                                    Boolean.TRUE.equals(prefDoc.getBoolean("shareEmergencyEvent"));
+
+                    // Step 2: write alert based on preference
+                    Map<String, Object> alert = new HashMap<>();
+                    alert.put("parentUid", parentUid);
+                    alert.put("childUid", childUid);
+                    alert.put("childName", finalChildName);
+                    alert.put("message", message);
+                    alert.put("timestamp", Timestamp.now());
+                    alert.put("processed", false);
+                    alert.put("sharedToProvider", shareEmergency);
+                    db.collection("parentAlerts")
+                            .add(alert)
+                            .addOnSuccessListener(doc -> Log.d(TAG, "Alert created: " + doc.getId()))
+                            .addOnFailureListener(e -> Log.e(TAG, "Alert creation failed", e));
+                });
     }
+
+
 
 
     /**

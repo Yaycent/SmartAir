@@ -69,12 +69,16 @@
         android:id="@+id/btnLogin"
         android:layout_width="match_parent"
         android:layout_height="60dp"
+        android:layout_marginStart="40dp"
         android:layout_marginTop="32dp"
+        android:layout_marginEnd="40dp"
         android:backgroundTint="#F5A849"
         android:text="Connect"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/etCode" />
 
     <TextView

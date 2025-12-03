@@ -23,33 +23,35 @@
         android:id="@+id/onbButtonLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_marginStart="15dp"
+        android:layout_marginEnd="15dp"
         android:gravity="center"
+        android:orientation="horizontal"
+
         android:paddingTop="16dp"
         android:paddingBottom="16dp"
-
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/onbBtnSkip"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/onboarding_skip"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:textColor="@android:color/black"
             app:cornerRadius="20dp" />
 
         <!-- Next -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/onbBtnNext"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/onboarding_next"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:textColor="@android:color/white"
             app:cornerRadius="20dp" />
 

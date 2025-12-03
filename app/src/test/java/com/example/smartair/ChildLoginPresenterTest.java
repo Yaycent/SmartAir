@@ -102,4 +102,9 @@ public class ChildLoginPresenterTest {
 
         verify(view).onLogout();
     }
+
+    @Test
+    public void testOnDestroy() {
+        presenter.onDestroy();
+    }
 }

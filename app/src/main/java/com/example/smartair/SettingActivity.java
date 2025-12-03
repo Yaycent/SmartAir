@@ -84,6 +84,7 @@ public class SettingActivity extends AppCompatActivity {
     }
 
     private void initViews() {
+
         // --- 绑定 Action Plan 控件 ---
         editGreen = findViewById(R.id.editGreenZone);
         editYellow = findViewById(R.id.editYellowZone);
@@ -96,6 +97,15 @@ public class SettingActivity extends AppCompatActivity {
         switchSharePEF = findViewById(R.id.switchSharePEF);
         switchShareSymptoms = findViewById(R.id.switchShareSymptoms);
         switchShareTriage = findViewById(R.id.switchShareTriage);
+
+
+        switchShareTriage.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!isUpdatingUI) {
+                updateSharingSetting("shareTriage", isChecked);
+                updateParentEmergencySetting(isChecked);
+            }
+        });
+
 
         // --- 设置监听器 ---
 
@@ -110,12 +120,24 @@ public class SettingActivity extends AppCompatActivity {
             setupSwitchListener(switchShareMeds, "shareMeds");
             setupSwitchListener(switchSharePEF, "sharePEF");
             setupSwitchListener(switchShareSymptoms, "shareSymptoms");
-            setupSwitchListener(switchShareTriage, "shareTriage");
+
         } else {
             // 如果没选孩子，禁用开关
             disableSwitches();
         }
     }
+
+    private void updateParentEmergencySetting(boolean value) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("shareEmergencyEvent", value);
+
+        db.collection("users")
+                .document(parentUid)
+                .collection("settings")
+                .document("preferences")
+                .set(map, SetOptions.merge());
+    }
+
 
     // ==========================================
     // PART 1: Action Plan Logic (Original Code)

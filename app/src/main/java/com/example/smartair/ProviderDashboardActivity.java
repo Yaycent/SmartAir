@@ -37,6 +37,7 @@ import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -47,8 +48,10 @@ import com.google.firebase.firestore.WriteBatch;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.example.smartair.Constants.*;
@@ -90,6 +93,10 @@ public class ProviderDashboardActivity extends AppCompatActivity {
     private ListenerRegistration medicineListListener;
     private ListenerRegistration rescueMedicineListener;
 
+    private MaterialCardView cardEmergencyAlerts;
+    private LinearLayout containerEmergencyAlerts;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -130,6 +137,10 @@ public class ProviderDashboardActivity extends AppCompatActivity {
         recyclerMedicineInventory = findViewById(R.id.recyclerMedicineInventory);
         tvRescueSummary = findViewById(R.id.tvRescueSummary);
         cardMedicationInventory = findViewById(R.id.cardMedicationInventory);
+
+        cardEmergencyAlerts = findViewById(R.id.cardEmergencyAlerts);
+        containerEmergencyAlerts = findViewById(R.id.containerEmergencyAlerts);
+
 
         recyclerMedicineInventory = findViewById(R.id.recyclerMedicineInventory);
         recyclerMedicineInventory.setLayoutManager(new LinearLayoutManager(this));
@@ -308,17 +319,19 @@ public class ProviderDashboardActivity extends AppCompatActivity {
                 .addSnapshotListener((snapshot, e) -> {
                     if (e != null || snapshot == null || !snapshot.exists()) return;
 
+                    // 获取 parentUid
                     if (snapshot.contains("parentId")) {
                         parentUid = snapshot.getString("parentId");
                         if (parentUid != null) {
+                            // 只根据 parent 的设置来决定是否显示 Alert
                             loadSharedEmergencyAlertsForProvider(parentUid);
                         }
                     }
 
+                    // 其他 sharing 项照旧
                     boolean shareMeds = false;
                     boolean sharePEF = false;
                     boolean shareSymptoms = false;
-                    boolean shareTriage = false;
 
                     if (snapshot.contains("sharingSettings")) {
                         Map<String, Object> settings = (Map<String, Object>) snapshot.get("sharingSettings");
@@ -326,17 +339,18 @@ public class ProviderDashboardActivity extends AppCompatActivity {
                             shareMeds = Boolean.TRUE.equals(settings.get("shareMeds"));
                             sharePEF = Boolean.TRUE.equals(settings.get("sharePEF"));
                             shareSymptoms = Boolean.TRUE.equals(settings.get("shareSymptoms"));
-                            shareTriage = Boolean.TRUE.equals(settings.get("shareTriage"));
                         }
                     }
 
-                    updateSectionVisibility(childUid, shareMeds, sharePEF, shareSymptoms, shareTriage);
+                    updateSectionVisibility(childUid, shareMeds, sharePEF, shareSymptoms);
                 });
     }
 
 
-    private void updateSectionVisibility(String childUid, boolean shareMeds, boolean sharePEF, boolean shareSymptoms,
-                                         boolean shareTriage) {
+
+    private void updateSectionVisibility(String childUid, boolean shareMeds, boolean sharePEF, boolean shareSymptoms){
+
+
         // 1. Medicine
         if (shareMeds) {
             cardMedicationInventory.setVisibility(View.VISIBLE);
@@ -382,15 +396,6 @@ public class ProviderDashboardActivity extends AppCompatActivity {
             buttonSymptomHistory.setVisibility(View.GONE);
         }
 
-        // 4. Triage
-        View triageBtn = findViewById(R.id.btnOneTapTriage);
-        if (triageBtn != null) {
-            if (shareTriage) {
-                triageBtn.setVisibility(View.VISIBLE);
-            } else {
-                triageBtn.setVisibility(View.GONE);
-            }
-        }
     }
 
     private void stopPatientDataListeners() {
@@ -448,9 +453,9 @@ public class ProviderDashboardActivity extends AppCompatActivity {
         chartPEF.clear();
         chartPEF.invalidate();
 
-        findViewById(R.id.layoutEmergencyAlerts).setVisibility(View.GONE);
-        LinearLayout list = findViewById(R.id.layoutAlertList);
-        list.removeAllViews();
+        cardEmergencyAlerts.setVisibility(View.GONE);
+        containerEmergencyAlerts.removeAllViews();
+
     }
 
     private void loadMedicines(String childUid) {
@@ -683,58 +688,84 @@ public class ProviderDashboardActivity extends AppCompatActivity {
                 .document(parentUid)
                 .collection("settings")
                 .document("preferences")
-                .get()
-                .addOnSuccessListener(doc -> {
+                .addSnapshotListener((doc, e) -> {
 
-                    boolean share = doc.getBoolean("shareEmergencyEvent") != null &&
-                            doc.getBoolean("shareEmergencyEvent");
-
-                    if (!share) {
-                        findViewById(R.id.layoutEmergencyAlerts).setVisibility(View.GONE);
+                    if (e != null || doc == null || !doc.exists()) {
+                        // 默认不分享，隐藏卡片
+                        cardEmergencyAlerts.setVisibility(View.GONE);
                         return;
                     }
 
+
+                    boolean share = Boolean.TRUE.equals(doc.getBoolean("shareEmergencyEvent"));
+
+
+                    if (!share) {
+                        cardEmergencyAlerts.setVisibility(View.GONE);
+                        containerEmergencyAlerts.removeAllViews();
+
+                        if (alertListener != null) {
+                            alertListener.remove();
+                            alertListener = null;
+                        }
+                        return;
+                    }
+
+                    // 监听 parentAlerts
                     loadEmergencyAlertsForProvider(parentUid);
                 });
     }
 
+
+    private ListenerRegistration alertListener;
+
     private void loadEmergencyAlertsForProvider(String parentUid) {
 
-        long cutoff = System.currentTimeMillis() - 24L * 60 * 60 * 1000;
+        if (alertListener != null) {
+            alertListener.remove();
+            alertListener = null;
+        }
 
-        db.collection("parentAlerts")
+        long cutoffMillis = System.currentTimeMillis() - 24L * 60 * 60 * 1000;
+        Timestamp cutoff = new Timestamp(new Date(cutoffMillis));
+
+        alertListener = db.collection("parentAlerts")
                 .whereEqualTo("parentUid", parentUid)
-                .whereGreaterThan("timestamp", new Timestamp(new java.util.Date(cutoff)))
+                .whereGreaterThan("timestamp", cutoff)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .limit(3)
-                .get()
-                .addOnSuccessListener(snap -> {
+                .addSnapshotListener((snap, e) -> {
 
-                    LinearLayout box = findViewById(R.id.layoutEmergencyAlerts);
-                    LinearLayout list = findViewById(R.id.layoutAlertList);
+                    if (e != null || snap == null) return;
 
-                    list.removeAllViews();
+                    containerEmergencyAlerts.removeAllViews();
 
                     if (snap.isEmpty()) {
-                        box.setVisibility(View.GONE);
+                        cardEmergencyAlerts.setVisibility(View.GONE);
                         return;
                     }
 
-                    box.setVisibility(View.VISIBLE);
+                    cardEmergencyAlerts.setVisibility(View.VISIBLE);
 
-                    for (var doc : snap.getDocuments()) {
-                        String msg = doc.getString("message");
+                    // reverse manually to show oldest → newest
+                    List<DocumentSnapshot> docs = snap.getDocuments();
+                    Collections.reverse(docs);
+
+                    for (DocumentSnapshot doc : docs) {
+                        String message = doc.getString("message");
 
                         TextView tv = new TextView(this);
-                        tv.setText("• " + msg);
+                        tv.setText("• " + message);
                         tv.setTextSize(14);
-                        tv.setTextColor(Color.parseColor("#A30000"));
-                        tv.setPadding(4, 6, 4, 6);
+                        tv.setTextColor(Color.parseColor("#D32F2F"));
+                        tv.setPadding(0, 6, 0, 6);
 
-                        list.addView(tv);
+                        containerEmergencyAlerts.addView(tv);
                     }
                 });
     }
+
+
 
 
 }

@@ -8,8 +8,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static com.example.smartair.Constants.*;
+import static com.example.smartair.utils.Constants.*;
 
+import com.example.smartair.mvp.LoginContract;
+import com.example.smartair.mvp.LoginPresenter;
+import com.example.smartair.ui.activities.ParentDashboardActivity;
+import com.example.smartair.ui.activities.ProviderDashboardActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -28,7 +32,26 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-
+/**
+ * LoginPresenterTest.java
+ * <p>
+ * Comprehensive Unit Tests for the {@link LoginPresenter}.
+ * Validates business logic, authentication flows, and role-based navigation.
+ * </p>
+ * <b>Test Coverage:</b>
+ * <ul>
+ * <li><b>Input Validation:</b> Ensures empty credentials trigger UI warnings.</li>
+ * <li><b>Authentication:</b> Mocks Firebase Auth results (Success/Failure) to verify UI responses.</li>
+ * <li><b>Role Security:</b> Verifies that role mismatches (e.g., Parent trying to login as Provider) are blocked.</li>
+ * <li><b>Data Integrity:</b> Handles edge cases like missing user data or null roles in Firestore.</li>
+ * <li><b>Navigation:</b> Confirms correct routing to Dashboard or Onboarding based on user state.</li>
+ * </ul>
+ *
+ * @author Judy Xu
+ * @version 1.0
+ * @see LoginPresenter
+ * @see LoginContract
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class LoginPresenterTest {
 

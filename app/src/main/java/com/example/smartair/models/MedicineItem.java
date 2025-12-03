@@ -1,0 +1,89 @@
+package com.example.smartair.models;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+/**
+ * MedicineItem.java
+ * <p>
+ * Data model representing a specific medication in the inventory (Requirement R3).
+ * Encapsulates details such as medication type (Rescue vs. Controller), dosage, and expiration status.
+ * </p>
+ * <b>Key Business Logic:</b>
+ * <ul>
+ * <li><b>Inventory Tracking:</b> Calculates the remaining percentage of medication via {@link #getPercentage()}.</li>
+ * <li><b>Expiration Logic:</b> Determines if the medicine is expiring within 30 days via {@link #isExpiringSoon()}.</li>
+ * <li><b>Alert Triggers:</b> Provides a helper method {@link #isReplacementNeeded()} to flag if the medicine is low (≤20%) or expiring, used for generating Parent Alerts.</li>
+ * </ul>
+ *
+ * @author Zhan Tian
+ * @version 1.0
+ */
+public class MedicineItem {
+    private String id;
+    private String name;
+    private String purchaseDate;
+    private String expiryDate;
+    private int totalDose;
+    private int remainingDose;
+    private String parentUid;
+    private String childUid;
+    private String medType;     // "Rescue" or "Controller"
+    private int dosePerUse;    // For controller, rescue = always 1
+    private String childName;
+    public MedicineItem() {}  // Firestore requirement
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    public String getName() { return name; }
+    public String getPurchaseDate() { return purchaseDate; }
+    public String getExpiryDate() { return expiryDate; }
+    public int getTotalDose() { return totalDose; }
+    public int getRemainingDose() { return remainingDose; }
+    public String getParentUid() { return parentUid; }
+    public String getChildUid() { return childUid; }
+    public String getMedType() { return medType; }
+    public int getDosePerUse() { return dosePerUse; }
+
+    public void setName(String name) { this.name = name; }
+    public void setPurchaseDate(String purchaseDate) { this.purchaseDate = purchaseDate; }
+    public void setExpiryDate(String expiryDate) { this.expiryDate = expiryDate; }
+    public void setTotalDose(int totalDose) { this.totalDose = totalDose; }
+    public void setRemainingDose(int remainingDose) { this.remainingDose = remainingDose; }
+    public void setParentUid(String parentUid) { this.parentUid = parentUid; }
+    public void setMedType(String medType) { this.medType = medType; }
+    public void setDosePerUse(int dosePerUse) { this.dosePerUse = dosePerUse; }
+    public String getChildName() { return childName; }
+    public void setChildName(String childName) { this.childName = childName; }
+    public double getPercentage() {
+        if (totalDose == 0) return 0;
+        return (remainingDose * 1.0 / totalDose) * 100;
+    }
+
+    public boolean isExpiringSoon() {
+        if (expiryDate == null || expiryDate.isEmpty()) {
+            return false;
+        }
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        try {
+            Date dateExpiry = sdf.parse(expiryDate);
+            Date dateNow = new Date();
+
+            long diffInMillies = dateExpiry.getTime() - dateNow.getTime();
+            long diffInDays = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+
+            return diffInDays <= 30;
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean isReplacementNeeded() {
+        return getPercentage() <= 20 || isExpiringSoon();
+    }
+
+}

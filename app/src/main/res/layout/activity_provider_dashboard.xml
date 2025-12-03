@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F4F6F8"
-    tools:context=".ProviderDashboardActivity">
+    tools:context=".ui.activities.ProviderDashboardActivity">
 
     <LinearLayout
         android:id="@+id/topBar"

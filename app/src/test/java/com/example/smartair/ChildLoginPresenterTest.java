@@ -13,6 +13,27 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.example.smartair.mvp.ChildLoginContract;
+import com.example.smartair.mvp.ChildLoginModel;
+import com.example.smartair.mvp.ChildLoginPresenter;
+/**
+ * ChildLoginPresenterTest.java
+ * <p>
+ * Local Unit Tests for the {@link ChildLoginPresenter}.
+ * This class fulfills the assignment requirement to validate Presenter logic using JUnit and Mockito.
+ * </p>
+ * <b>Test Coverage:</b>
+ * <ul>
+ * <li><b>Input Validation:</b> Verifies that codes shorter than 6 digits trigger an immediate error (No Model call).</li>
+ * <li><b>Success Flow:</b> Simulates a successful database response and verifies that the View navigates to the Dashboard.</li>
+ * <li><b>Error Handling:</b> Simulates database errors (e.g., "Code Expired") and verifies the View displays the appropriate message.</li>
+ * <li><b>Logout:</b> Verifies that the logout action is correctly delegated to the View.</li>
+ * </ul>
+ *
+ * @author Judy Xu
+ * @version 1.0
+ * @see ChildLoginPresenter
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class ChildLoginPresenterTest {
 

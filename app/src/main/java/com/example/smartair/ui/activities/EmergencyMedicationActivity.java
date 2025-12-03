@@ -1,0 +1,258 @@
+package com.example.smartair.ui.activities;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.Toast;
+
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import com.example.smartair.R;
+import com.example.smartair.utils.RescueUsageManager;
+import com.example.smartair.utils.ClickForHelpFeature;
+import com.example.smartair.utils.ParentAlertHelper;
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.example.smartair.utils.Constants.*;
+/**
+ * EmergencyMedicationActivity.java
+ * <p>
+ * Handles the logging of Rescue Medication usage by the Child (Requirement R3).
+ * </p>
+ * <b>Key Functionalities:</b>
+ * <ul>
+ * <li><b>Usage Details:</b> Captures dose count, pre-medication feeling, and post-medication feeling.</li>
+ * <li><b>Inventory Check:</b> Verifies if sufficient medication stock is available before logging.</li>
+ * <li><b>Safety Alerts (R4):</b>
+ * <ul>
+ * <li>Triggers a "Worse after dose" alert if the child reports feeling worse.</li>
+ * <li>Checks for "Rapid Rescue Repeats" (≥3 uses in 3 hours) and notifies the parent via {@link ParentAlertHelper}.</li>
+ * </ul>
+ * </li>
+ * <li><b>Technique Help:</b> Provides access to inhaler usage instructions via {@link ClickForHelpFeature}.</li>
+ * </ul>
+ *
+ * @author Zhan Tian, Jiayi Qi
+ * @version 2.0
+ */
+public class EmergencyMedicationActivity extends AppCompatActivity {
+    private static final String TAG = "EmergencyMedication";
+
+    private Spinner spinnerPreFeeling, spinnerPostFeeling;
+    private EditText editDoseCount;
+    private Button buttonSubmit;
+    private String parentUid;
+
+    private String childUid;   // from ChildDashboardActivity
+    private String rescueMedId;
+    private String childName;
+
+    private FirebaseFirestore db;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_emergency_medication);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
+        Intent intent = getIntent();
+        childUid = intent.getStringExtra(CHILD_UID);
+        parentUid = intent.getStringExtra(PARENT_UID);
+        rescueMedId = intent.getStringExtra(MEDICINE_ID);
+        childName = intent.getStringExtra(CHILD_NAME);
+
+        if (childUid == null || rescueMedId == null || parentUid == null) {
+            Toast.makeText(this, "Missing medication info!", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "childUid=" + childUid + " parentUid=" + parentUid + " rescueMedId=" + rescueMedId);
+            finish();
+            return;
+        }
+
+        db = FirebaseFirestore.getInstance();
+
+        spinnerPreFeeling = findViewById(R.id.spinnerPreFeeling);
+        spinnerPostFeeling = findViewById(R.id.spinnerPostFeeling);
+        editDoseCount = findViewById(R.id.editDoseCount);
+        buttonSubmit = findViewById(R.id.buttonSubmitLog);
+        ImageButton imageButtonBackEmergencyMedication = findViewById(R.id.imageButtonBackEmergencyMedication);
+        ImageButton imageButtonClickForHelp = findViewById(R.id.imageButtonClickForHelp);
+
+        // Set click listener for the back button
+        imageButtonBackEmergencyMedication.setOnClickListener(v -> finish());
+
+        // Set click listener for the help button
+        imageButtonClickForHelp.setOnClickListener(v ->{
+            Intent clickForHelpintent = new Intent(EmergencyMedicationActivity.this, ClickForHelpFeature.class);
+            startActivity(clickForHelpintent);
+        });
+
+        setupFeelingSpinners();
+        setupSubmitButton();
+    }
+
+    /**
+     * Initializes the Better / Same / Worse spinners
+     * using the feeling_options string array
+     */
+    private void setupFeelingSpinners() {
+        // Adapter loads choices from strings.xml
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                this,
+                R.array.feeling_options,
+                android.R.layout.simple_spinner_item
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // Set adapter to both spinners
+        spinnerPreFeeling.setAdapter(adapter);
+        spinnerPostFeeling.setAdapter(adapter);
+    }
+
+    /**
+     * Sets click listener for the submit button.
+     */
+    private void setupSubmitButton() {
+        buttonSubmit.setOnClickListener(v -> submitMedicationLog());
+    }
+
+    /**
+     * Submits a complete medication log to Firestore.
+     * Includes feelings, dose count, timestamp, and medication
+     * type.
+     */
+    private void submitMedicationLog(){
+        // Read feelings from the spinners
+        String preFeeling = spinnerPreFeeling.getSelectedItem().toString();
+        String postFeeling = spinnerPostFeeling.getSelectedItem().toString();
+        String doseStr = editDoseCount.getText().toString().trim();
+
+        // Validate dose count
+        if (doseStr.isEmpty()){
+            Toast.makeText(this, "Please enter dose count", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int doseCount;
+        try {
+            doseCount = Integer.parseInt(doseStr);
+        } catch (NumberFormatException e) {
+            editDoseCount.setError("Invalid number");
+            return;
+        }
+
+        // Avoid doseCount <=0
+        if (doseCount <= 0) {
+            editDoseCount.setError("Dose must be greater than 0");
+            return;
+        }
+
+        // Get remaining dose from Firestore
+        db.collection("medicine")
+                .document(rescueMedId)
+                .get()
+                .addOnSuccessListener(doc -> {
+
+                    if (!doc.exists()) {
+                        Toast.makeText(this, "Medicine not found!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    Long remLong = doc.getLong("remainingDose");
+                    int remainingDose = (remLong != null) ? remLong.intValue() : 0;
+
+                    if (remainingDose == 0) {
+                        Toast.makeText(this, "No inventory left. Please contact your parent.", Toast.LENGTH_LONG).show();
+                        finish();  // <-- leave activity so child won't get stuck
+                        return;
+                    }
+
+                    if (doseCount > remainingDose) {
+                        editDoseCount.setError("Dose exceeds remaining inventory (" + remainingDose + ")");
+                        editDoseCount.setText("");
+                        return;
+                    }
+                    uploadRescueLog(preFeeling, postFeeling, doseCount);
+
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Unable to check remaining dose", Toast.LENGTH_SHORT).show());
+    }
+
+    /**
+     * Helper function for submit medicine log.
+     */
+    private void uploadRescueLog(String preFeeling, String postFeeling, int doseCount) {
+
+        // Build a log object to upload to Firestore
+        Map<String, Object> log = new HashMap<>();
+        log.put("childUid", childUid);
+        log.put("childName", childName);
+        log.put("parentUid", parentUid);
+        log.put("medicineId", rescueMedId);
+        // change time comparison method System.currentTimeMillis() to  Timestamp.now()
+        log.put("timestamp", Timestamp.now());
+        log.put("type", "Rescue");
+        log.put("preFeeling", preFeeling);
+        log.put("postFeeling", postFeeling);
+        log.put("doseCount", doseCount);
+        log.put("processed", false);
+
+        // Upload the log
+        db.collection("medicationLogs")
+                .add(log)
+                .addOnSuccessListener(ref -> {
+                    Toast.makeText(this, "Medication log submitted", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Log added: " + ref.getId());
+                    // add new
+                    RescueUsageManager rm = new RescueUsageManager();
+                    rm.startListening(parentUid, childUid);
+                    if ("Worse".equalsIgnoreCase(postFeeling) && parentUid != null) {
+                        ParentAlertHelper.alertRescueWorse(parentUid, childUid, childName, postFeeling);
+                    }
+                    checkRescueOveruseForChild();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error adding log", e);
+                    Toast.makeText(this, "Failed to save: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+// add new
+    private void checkRescueOveruseForChild() {
+
+        long now = System.currentTimeMillis();
+        long threeHoursAgo = now - 3L * 60 * 60 * 1000;
+        db.collection("medicationLogs")
+                .whereEqualTo("childUid", childUid)
+                .whereEqualTo("type", "Rescue")
+                .whereGreaterThan("timestamp", threeHoursAgo)   // 用 long
+                .get()
+                .addOnSuccessListener(snap -> {
+                    int count = snap.size();
+
+                    Log.d(TAG, "Rescue in last 3 hours = " + count);
+
+                    if (count >= 3) {
+                        ParentAlertHelper.alertRescueOveruse(parentUid, childUid, childName, count);
+                    }
+                });
+    }
+}

@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="#FFF7EC"
     android:padding="20dp"
-    tools:context=".ChildLoginActivity">
+    tools:context=".ui.activities.ChildLoginActivity">
 
     <ImageView
         android:id="@+id/ivIcon"

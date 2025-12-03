@@ -14,28 +14,28 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartAir">
         <activity
-            android:name=".OnboardingActivity"
+            android:name=".ui.activities.OnboardingActivity"
             android:exported="false" />
         <activity
-            android:name=".SettingActivity"
+            android:name=".ui.activities.SettingActivity"
             android:exported="false" />
         <activity
-            android:name=".SOSSecondaryActivity"
+            android:name=".ui.activities.SOSSecondaryActivity"
             android:exported="false" />
         <activity
-            android:name=".SOSTriageActivity"
+            android:name=".ui.activities.SOSTriageActivity"
             android:exported="false" />
         <activity
-            android:name=".BadgeLibrary"
+            android:name=".utils.BadgeLibrary"
             android:exported="false" />
         <activity
-            android:name=".ProviderDashboardActivity"
+            android:name=".ui.activities.ProviderDashboardActivity"
             android:exported="false" />
         <activity
-            android:name=".ChildLoginActivity"
+            android:name=".ui.activities.ChildLoginActivity"
             android:exported="false" />
         <activity
-            android:name=".RoleSelectionActivity"
+            android:name=".ui.activities.RoleSelectionActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -44,47 +44,39 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ClickForHelpFeature"
+            android:name=".utils.ClickForHelpFeature"
             android:exported="false"
             android:theme="@style/Theme.SmartAir" />
         <activity
-            android:name=".AddMedicineActivity"
+            android:name=".ui.activities.AddMedicineActivity"
             android:exported="false" />
         <activity
-            android:name=".EmergencyMedicationActivity"
+            android:name=".ui.activities.EmergencyMedicationActivity"
             android:exported="false" />
         <activity
-            android:name=".RecordPEFFeature"
+            android:name=".utils.RecordPEFFeature"
             android:exported="false" />
         <activity
-            android:name=".ChildDashboardActivity"
+            android:name=".ui.activities.ChildDashboardActivity"
             android:exported="false" />
         <activity
-            android:name=".ParentDashboardActivity"
+            android:name=".ui.activities.ParentDashboardActivity"
             android:exported="false" />
         <activity
-            android:name=".RegisterActivity"
+            android:name=".ui.activities.RegisterActivity"
             android:exported="false" />
         <activity
-            android:name=".AddChildActivity"
+            android:name=".ui.activities.AddChildActivity"
             android:exported="false" />
         <activity
-            android:name=".DailyCheckInActivity"
+            android:name=".ui.activities.DailyCheckInActivity"
             android:exported="false" />
         <activity
-            android:name=".SymptomHistoryActivity"
+            android:name=".ui.activities.SymptomHistoryActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.activities.MainActivity"
             android:exported="false" />
-
-        <service
-            android:name=".MyFirebaseMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
     </application>
 
 </manifest>
